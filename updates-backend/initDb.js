@@ -33,7 +33,7 @@ async function initializeDb() {
 async function seedData(db) {
   // Users
   await db.run(`INSERT OR IGNORE INTO users (id, email, password_hash, name, role) VALUES 
-    (1, 'admin@updates.com', 'hashed_password_123', 'Super Admin', 'superuser'),
+    (1, 'admin@updates.com', 'hashed_password_123', 'Max Mezalon', 'superuser'),
     (2, 'pastor@scog.com', 'hashed_password_456', 'Pastor Johnson', 'church_admin'),
     (3, 'admin@fmcob.com', 'hashed_password_789', 'Admin Marie', 'church_admin')`);
 
@@ -61,16 +61,23 @@ async function seedData(db) {
     (2, 'Zelle', 'FMCB Zelle', '718-555-1234', 'Zelle for Free Methodist Church of Bethlehem'),
     (2, 'Cash App', 'FMCB CashApp', '$fmcbrooklyn', 'Cash App for Free Methodist Church of Bethlehem')`);
 
+  // Events (matching mockup)
+  await db.run(`INSERT OR IGNORE INTO events (church_id, title, description, location, start_datetime, end_datetime, image_url, price, contact_email, contact_phone, website, favorites_count) VALUES 
+    (1, '8th Annual Revival', 'A week of revival and worship.', '4601 Ave N, Brooklyn NY 11234', '2024-12-15 19:30:00', NULL, 'https://i.imgur.com/8thRevival.jpg', 0, 'info@scog.com', '718-445-3822', 'https://scog.com/events/revival', 50),
+    (2, 'La Puissance De La Main De Dieu', 'A special event with guest speakers.', '4415 Glenwood Rd, Brooklyn NY 11203', '2024-11-07 20:00:00', NULL, 'https://i.imgur.com/LaPuissance.jpg', 0, 'contact@fmcob.com', '917-855-6441', 'https://fmcob.com/events/puissance', 30)`);
+
   // Announcements
-  await db.run(`INSERT OR IGNORE INTO announcements (church_id, title, description, type, subcategory, start_time, end_time, recurrence_rule, is_special, posted_at) VALUES 
-    (1, 'Sunday Morning Worship', 'First Service', 'service', 'first_service', 'Sunday 8:30 AM', 'Sunday 11:00 AM', 'weekly', 0, NULL),
-    (1, 'Sunday Morning Worship', 'Second Service', 'service', 'second_service', 'Sunday 11:30 AM', 'Sunday 1:00 PM', 'weekly', 0, NULL),
-    (1, 'Weekly Bible Study', 'Youth Bible Study', 'bible_study', 'youth', 'Thursday 5:00 PM', 'Thursday 6:50 PM', 'weekly', 0, NULL),
-    (1, 'Weekly Bible Study', 'Adult Bible Study', 'bible_study', 'adult', 'Thursday 7:00 PM', 'Thursday 9:00 PM', 'weekly', 0, NULL),
-    (1, 'Our 9th Anniversary Gala', 'Special event for the church anniversary', 'special', NULL, NULL, NULL, NULL, 1, '2024-12-05 19:30:00'),
-    (2, 'Sunday Worship', 'Main Service', 'service', NULL, 'Sunday 10:00 AM', 'Sunday 12:00 PM', 'weekly', 0, NULL),
-    (2, 'Weekly Bible Study', 'Adult Bible Study', 'bible_study', 'adult', 'Wednesday 7:00 PM', 'Wednesday 8:30 PM', 'weekly', 0, NULL),
-    (2, 'Thanksgiving Service', 'Special thanksgiving event', 'special', NULL, NULL, NULL, NULL, 1, '2024-11-28 10:00:00')`);
+  await db.run(`INSERT OR IGNORE INTO announcements (church_id, title, description, image_url, type, subcategory, start_time, end_time, recurrence_rule, is_special, posted_at) VALUES 
+    -- Featured Events (matching mockup)
+    (1, '8th Annual Revival', 'December 15th, 2024 @ 7:30 PM - 4601 Ave N, Brooklyn NY 11234', 'https://i.imgur.com/8thRevival.jpg', 'special', NULL, NULL, NULL, NULL, 1, '2024-12-01 10:00:00'),
+    (2, 'La Puissance De La Main De Dieu', 'November 7th, 2024 @ 8:00 PM - 4415 Glenwood Rd, Brooklyn NY', 'https://i.imgur.com/LaPuissance.jpg', 'special', NULL, NULL, NULL, NULL, 1, '2024-10-25 09:00:00'),
+    -- Regular Services
+    (1, 'Sunday Morning Worship', 'First Service', NULL, 'service', 'first_service', 'Sunday 8:30 AM', 'Sunday 11:00 AM', 'weekly', 0, NULL),
+    (1, 'Sunday Morning Worship', 'Second Service', NULL, 'service', 'second_service', 'Sunday 11:30 AM', 'Sunday 1:00 PM', 'weekly', 0, NULL),
+    (1, 'Weekly Bible Study', 'Youth Bible Study', NULL, 'bible_study', 'youth', 'Thursday 5:00 PM', 'Thursday 6:50 PM', 'weekly', 0, NULL),
+    (1, 'Weekly Bible Study', 'Adult Bible Study', NULL, 'bible_study', 'adult', 'Thursday 7:00 PM', 'Thursday 9:00 PM', 'weekly', 0, NULL),
+    (2, 'Sunday Worship', 'Main Service', NULL, 'service', NULL, 'Sunday 10:00 AM', 'Sunday 12:00 PM', 'weekly', 0, NULL),
+    (2, 'Weekly Bible Study', 'Adult Bible Study', NULL, 'bible_study', 'adult', 'Wednesday 7:00 PM', 'Wednesday 8:30 PM', 'weekly', 0, NULL)`);
 }
 
 if (require.main === module) {

@@ -1,40 +1,50 @@
-const db = require('../db');
+const { getDb } = require('../db');
 
 module.exports = {
   async getAll() {
-    const { rows } = await db.query('SELECT * FROM churches ORDER BY id');
+    const db = getDb();
+    const rows = await db.all('SELECT * FROM churches ORDER BY id');
     return rows;
   },
   async getById(id) {
-    const { rows } = await db.query('SELECT * FROM churches WHERE id = $1', [id]);
-    return rows[0];
+    const db = getDb();
+    const row = await db.get('SELECT * FROM churches WHERE id = ?', [id]);
+    return row;
   },
   async create(data) {
+    const db = getDb();
     const { name, senior_pastor, senior_pastor_avatar, pastor, pastor_avatar, assistant_pastor, assistant_pastor_avatar, address, city, state, zip, contact_email, contact_phone, website, logo_url, banner_url, description } = data;
-    const { rows } = await db.query(
+    const result = await db.run(
       `INSERT INTO churches (name, senior_pastor, senior_pastor_avatar, pastor, pastor_avatar, assistant_pastor, assistant_pastor_avatar, address, city, state, zip, contact_email, contact_phone, website, logo_url, banner_url, description)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *`,
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [name, senior_pastor, senior_pastor_avatar, pastor, pastor_avatar, assistant_pastor, assistant_pastor_avatar, address, city, state, zip, contact_email, contact_phone, website, logo_url, banner_url, description]
     );
-    return rows[0];
+    
+    // Get the inserted record
+    const inserted = await db.get('SELECT * FROM churches WHERE id = ?', [result.lastID]);
+    return inserted;
   },
   async update(id, data) {
+    const db = getDb();
     const fields = [];
-    const values = [id];
-    let idx = 2;
+    const values = [];
     for (const key in data) {
-      fields.push(`${key} = $${idx}`);
+      fields.push(`${key} = ?`);
       values.push(data[key]);
-      idx++;
     }
-    const { rows } = await db.query(
-      `UPDATE churches SET ${fields.join(', ')} WHERE id = $1 RETURNING *`,
+    values.push(id);
+    await db.run(
+      `UPDATE churches SET ${fields.join(', ')} WHERE id = ?`,
       values
     );
-    return rows[0];
+    
+    // Get the updated record
+    const updated = await db.get('SELECT * FROM churches WHERE id = ?', [id]);
+    return updated;
   },
   async remove(id) {
-    await db.query('DELETE FROM churches WHERE id = $1', [id]);
+    const db = getDb();
+    await db.run('DELETE FROM churches WHERE id = ?', [id]);
     return true;
   }
 };

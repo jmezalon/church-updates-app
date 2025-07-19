@@ -1,25 +1,23 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
+
+// Enable CORS for all routes
+app.use(cors());
 const churchesRouter = require('./routes/churches');
 const eventsRouter = require('./routes/events');
 const donationsRouter = require('./routes/donations');
 const announcementsRouter = require('./routes/announcements');
-const ministriesRouter = require('./routes/ministries');
-const membersRouter = require('./routes/members');
-const usersRouter = require('./routes/users');
 const errorHandler = require('./middleware/errorHandler');
 const { initializeDatabase } = require('./db');
 
 app.use(express.json());
 
 app.use('/churches', churchesRouter);
-app.use('/events', eventsRouter);
-app.use('/donations', donationsRouter);
+app.use('/churches/:churchId/events', eventsRouter);
+app.use('/churches/:churchId/donations', donationsRouter);
 app.use('/announcements', announcementsRouter);
-app.use('/ministries', ministriesRouter);
-app.use('/members', membersRouter);
-app.use('/users', usersRouter);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -1,9 +1,9 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const events = require('../models/events');
 
-// GET /churches/:churchId/events
-router.get('/churches/:churchId/events', async (req, res, next) => {
+// GET /churches/:churchId/events (mounted at /churches/:churchId/events)
+router.get('/', async (req, res, next) => {
   try {
     const all = await events.getAllByChurch(req.params.churchId);
     res.json(all);
@@ -23,8 +23,8 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// POST /churches/:churchId/events
-router.post('/churches/:churchId/events', async (req, res, next) => {
+// POST /churches/:churchId/events (mounted at /churches/:churchId/events)
+router.post('/', async (req, res, next) => {
   try {
     const newEvent = await events.create(req.params.churchId, req.body);
     res.status(201).json(newEvent);
