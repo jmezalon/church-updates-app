@@ -9,17 +9,17 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { apiService, Announcement } from '@/services/api';
+import { apiService, Event } from '@/services/api';
 
 export default function HomeScreen() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadAnnouncements = async () => {
+  const loadEvents = async () => {
     try {
-      const data = await apiService.getFeaturedAnnouncements();
-      setAnnouncements(data);
+      const data = await apiService.getAllEvents();
+      setEvents(data);
     } catch (error) {
       console.error('Error loading announcements:', error);
       Alert.alert('Error', 'Failed to load updates. Please check if the backend server is running.');
@@ -30,12 +30,12 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    loadAnnouncements();
+    loadEvents();
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadAnnouncements();
+    loadEvents();
   };
 
   const formatDate = (dateString: string) => {
@@ -56,29 +56,42 @@ export default function HomeScreen() {
     });
   };
 
-  const renderAnnouncementCard = (announcement: Announcement) => (
-    <TouchableOpacity key={announcement.id} style={styles.card}>
-      {announcement.image_url && (
+  const renderEventCard = (event: Event) => (
+    <TouchableOpacity key={event.id} style={styles.card}>
+      {event.image_url && (
         <Image
-          source={{ uri: announcement.image_url }}
+          source={{ uri: event.image_url }}
           style={styles.cardImage}
         />
       )}
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{announcement.title}</Text>
-        {announcement.description && (
-          <Text style={styles.cardDescription}>{announcement.description}</Text>
+        <Text style={styles.cardTitle}>{event.title}</Text>
+        {event.description && (
+          <Text style={styles.cardDescription}>{event.description}</Text>
         )}
-        {announcement.posted_at && (
+        {event.start_datetime && (
           <View style={styles.dateTimeContainer}>
-            <Text style={styles.dateText}>
-              {formatDate(announcement.posted_at)} @ {formatTime(announcement.posted_at)}
-            </Text>
+            {event.church_logo && (
+              <Image
+                source={{ uri: event.church_logo }}
+                style={styles.churchLogoCircle}
+              />
+            )}
+            <View style={styles.dateTextContainer}>
+              <Text style={styles.dateText}>
+                {formatDate(event.start_datetime)} @ {formatTime(event.start_datetime)}
+              </Text>
+            </View>
           </View>
         )}
-        {announcement.church_name && (
+        {event.church_name && (
           <View style={styles.churchContainer}>
-            <Text style={styles.churchName}>{announcement.church_name}</Text>
+            <Text style={styles.churchName}>{event.church_name}</Text>
+          </View>
+        )}
+        {event.location && (
+          <View style={styles.locationContainer}>
+            <Text style={styles.locationText}>{event.location}</Text>
           </View>
         )}
       </View>
@@ -105,15 +118,15 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {announcements.length === 0 ? (
+        {events.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No updates available</Text>
+            <Text style={styles.emptyText}>No events available</Text>
             <Text style={styles.emptySubtext}>
-              Make sure your backend server is running on localhost:3001
+              Make sure your backend server is running on localhost:3000
             </Text>
           </View>
         ) : (
-          announcements.map(renderAnnouncementCard)
+          events.map(renderEventCard)
         )}
       </ScrollView>
     </View>
@@ -177,7 +190,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   dateTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  churchLogoCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+    backgroundColor: '#f0f0f0',
+  },
+  dateTextContainer: {
+    flex: 1,
   },
   dateText: {
     fontSize: 14,
@@ -220,5 +245,13 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  locationContainer: {
+    marginTop: 8,
+  },
+  locationText: {
+    fontSize: 12,
+    color: '#888',
+    fontStyle: 'italic',
   },
 });

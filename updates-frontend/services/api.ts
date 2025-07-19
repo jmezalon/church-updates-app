@@ -52,6 +52,8 @@ export interface Event {
   contact_phone?: string;
   website?: string;
   favorites_count?: number;
+  church_name?: string;
+  church_logo?: string;
 }
 
 export interface Donation {
@@ -104,6 +106,10 @@ class ApiService {
   }
 
   // Events
+  async getAllEvents(): Promise<Event[]> {
+    return this.fetchApi<Event[]>('/events');
+  }
+
   async getEventsByChurch(churchId: number): Promise<Event[]> {
     return this.fetchApi<Event[]>(`/churches/${churchId}/events`);
   }

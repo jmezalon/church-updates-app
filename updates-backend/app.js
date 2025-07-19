@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 const churchesRouter = require('./routes/churches');
 const eventsRouter = require('./routes/events');
+const globalEventsRouter = require('./routes/globalEvents');
 const donationsRouter = require('./routes/donations');
 const announcementsRouter = require('./routes/announcements');
 const errorHandler = require('./middleware/errorHandler');
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use('/churches', churchesRouter);
 app.use('/churches/:churchId/events', eventsRouter);
+app.use('/events', globalEventsRouter);
 app.use('/churches/:churchId/donations', donationsRouter);
 app.use('/announcements', announcementsRouter);
 

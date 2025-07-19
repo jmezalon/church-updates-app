@@ -1,6 +1,16 @@
 const { getDb } = require('../db');
 
 module.exports = {
+  async getAll() {
+    const db = getDb();
+    const rows = await db.all(
+      `SELECT e.*, c.name as church_name, c.logo_url as church_logo 
+       FROM events e 
+       JOIN churches c ON e.church_id = c.id 
+       ORDER BY e.start_datetime ASC`
+    );
+    return rows;
+  },
   async getAllByChurch(churchId) {
     const db = getDb();
     const rows = await db.all(
