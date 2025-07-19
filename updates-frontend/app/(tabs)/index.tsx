@@ -9,9 +9,11 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { apiService, Event } from '@/services/api';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,19 +58,23 @@ export default function HomeScreen() {
     });
   };
 
+  const handleEventPress = (eventId: number) => {
+    router.push({ pathname: '/(tabs)/event_details', params: { id: eventId.toString() } });
+  };
+
+
   const renderEventCard = (event: Event) => (
-    <TouchableOpacity key={event.id} style={styles.card}>
+    <View key={event.id} style={styles.card}>
       {event.image_url && (
-        <Image
-          source={{ uri: event.image_url }}
-          style={styles.cardImage}
-        />
+        <TouchableOpacity onPress={() => handleEventPress(event.id)}>
+          <Image
+            source={{ uri: event.image_url }}
+            style={styles.cardImage}
+          />
+        </TouchableOpacity>
       )}
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{event.title}</Text>
-        {event.description && (
-          <Text style={styles.cardDescription}>{event.description}</Text>
-        )}
         {event.start_datetime && (
           <View style={styles.dateTimeContainer}>
             {event.church_logo && (
@@ -89,13 +95,8 @@ export default function HomeScreen() {
             <Text style={styles.churchName}>{event.church_name}</Text>
           </View>
         )}
-        {event.location && (
-          <View style={styles.locationContainer}>
-            <Text style={styles.locationText}>{event.location}</Text>
-          </View>
-        )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   if (loading) {
@@ -183,12 +184,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
-  cardDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
   dateTimeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -248,10 +243,5 @@ const styles = StyleSheet.create({
   },
   locationContainer: {
     marginTop: 8,
-  },
-  locationText: {
-    fontSize: 12,
-    color: '#888',
-    fontStyle: 'italic',
   },
 });

@@ -49,6 +49,18 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="event_details"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
     </Tabs>
   );
 }

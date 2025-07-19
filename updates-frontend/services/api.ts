@@ -110,6 +110,10 @@ class ApiService {
     return this.fetchApi<Event[]>('/events');
   }
 
+  async getEventById(id: number): Promise<Event> {
+    return this.fetchApi<Event>(`/events/${id}`);
+  }
+
   async getEventsByChurch(churchId: number): Promise<Event[]> {
     return this.fetchApi<Event[]>(`/churches/${churchId}/events`);
   }
