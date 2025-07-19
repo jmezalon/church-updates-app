@@ -1,15 +1,19 @@
 require('dotenv').config();
-const { Pool } = require('pg');
+const sqlite3 = require('sqlite3').verbose();
+const { open } = require('sqlite');
+const path = require('path');
 
-const pool = new Pool({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT,
-});
+let db;
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool,
+const initializeDatabase = async () => {
+  if (!db) {
+    db = await open({
+      filename: path.join(__dirname, 'updates.db'),
+      driver: sqlite3.Database
+    });
+    console.log('Connected to SQLite database');
+  }
+  return db;
 };
+
+module.exports = { initializeDatabase, getDb: () => db };
