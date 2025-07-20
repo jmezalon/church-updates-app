@@ -31,11 +31,19 @@ async function initializeDb() {
 }
 
 async function seedData(db) {
-  // Users
+  const bcrypt = require('bcryptjs');
+  
+  // Create properly hashed passwords for testing
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const pastorPassword = await bcrypt.hash('pastor123', 10);
+  const mariePassword = await bcrypt.hash('marie123', 10);
+  
+  // Users with properly hashed passwords
   await db.run(`INSERT OR IGNORE INTO users (id, email, password_hash, name, role) VALUES 
-    (1, 'admin@updates.com', 'hashed_password_123', 'Max Mezalon', 'superuser'),
-    (2, 'pastor@scog.com', 'hashed_password_456', 'Pastor Johnson', 'church_admin'),
-    (3, 'admin@fmcob.com', 'hashed_password_789', 'Admin Marie', 'church_admin')`);
+    (1, 'admin@updates.com', ?, 'Max Mezalon', 'superuser'),
+    (2, 'pastor@scog.com', ?, 'Pastor Johnson', 'church_admin'),
+    (3, 'admin@fmcob.com', ?, 'Admin Marie', 'church_admin')`, 
+    [adminPassword, pastorPassword, mariePassword]);
 
   // Churches
   await db.run(`INSERT OR IGNORE INTO churches (id, name, senior_pastor, pastor, assistant_pastor, senior_pastor_avatar, pastor_avatar, assistant_pastor_avatar, address, city, state, zip, contact_email, contact_phone, website, logo_url, banner_url, description) VALUES 

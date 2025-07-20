@@ -5,21 +5,27 @@ import { Navbar } from '../components/Navbar';
 import { useAuth } from '../auth/AuthContext';
 
 export function LoginPage() {
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [passphrase, setPassphrase] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, loading, error: authError } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    if (login(name, passphrase)) {
-      navigate('/dashboard');
-    } else {
-      setError('Please enter both name and passphrase');
+    if (!email.trim() || !passphrase.trim()) {
+      setError('Please enter both email and password');
+      return;
     }
+    
+    const success = await login(email, passphrase);
+    if (success) {
+      navigate('/dashboard');
+    }
+    // Error handling is done by auth context, but we can also show local error
+    // The authError from context will be displayed below
   };
 
   return (
@@ -35,18 +41,18 @@ export function LoginPage() {
               Enter your credentials to access your church's admin portal.
             </Typography>
             
-            {error && (
+            {(error || authError) && (
               <Alert severity="error" sx={{ mb: 3 }}>
-                {error}
+                {error || authError}
               </Alert>
             )}
             
             <form onSubmit={handleSubmit}>
               <TextField
                 fullWidth
-                label="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 margin="normal"
                 required
                 sx={{ mb: 2 }}
@@ -67,9 +73,10 @@ export function LoginPage() {
                 variant="contained"
                 color="secondary"
                 size="large"
+                disabled={loading}
                 sx={{ fontWeight: 600, py: 1.5 }}
               >
-                Login
+                {loading ? 'Logging in...' : 'Login'}
               </Button>
             </form>
           </CardContent>

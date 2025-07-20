@@ -1,11 +1,30 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+// Backend API configuration
+const API_BASE_URL = 'http://localhost:3000';
+
+// User interface matching backend response
+interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  churchAssignments?: Array<{
+    id: number;
+    user_id: number;
+    church_id: number;
+    church_name: string;
+  }>;
+}
 
 // Authentication Context
 interface AuthContextType {
   isLoggedIn: boolean;
-  user: { name: string } | null;
-  login: (name: string, passphrase: string) => boolean;
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,25 +39,99 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const login = (name: string, passphrase: string) => {
-    // Simple authentication - in real app, this would call your backend
-    if (name.trim() && passphrase.trim()) {
-      setIsLoggedIn(true);
-      setUser({ name });
-      return true;
+  // Check for existing token on app load
+  useEffect(() => {
+    const checkExistingAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/verify-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.valid && data.user) {
+              setUser(data.user);
+              setIsLoggedIn(true);
+            } else {
+              localStorage.removeItem('authToken');
+            }
+          } else {
+            localStorage.removeItem('authToken');
+          }
+        } catch (err) {
+          console.error('Token verification failed:', err);
+          localStorage.removeItem('authToken');
+        }
+      }
+      setLoading(false);
+    };
+
+    checkExistingAuth();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    setError(null);
+    setLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.token && data.user) {
+        // Store token in localStorage
+        localStorage.setItem('authToken', data.token);
+        
+        // Update auth state
+        setUser(data.user);
+        setIsLoggedIn(true);
+        setLoading(false);
+        return true;
+      } else {
+        setError(data.error || 'Login failed');
+        setLoading(false);
+        return false;
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Network error. Please try again.');
+      setLoading(false);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
+    localStorage.removeItem('authToken');
     setIsLoggedIn(false);
     setUser(null);
+    setError(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isLoggedIn, 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      error 
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -10,11 +10,18 @@ const eventsRouter = require('./routes/events');
 const globalEventsRouter = require('./routes/globalEvents');
 const donationsRouter = require('./routes/donations');
 const announcementsRouter = require('./routes/announcements');
+const authRouter = require('./routes/auth');
+const usersRouter = require('./routes/users');
 const errorHandler = require('./middleware/errorHandler');
 const { initializeDatabase } = require('./db');
 
 app.use(express.json());
 
+// Authentication routes
+app.use('/auth', authRouter);
+app.use('/users', usersRouter);
+
+// Existing routes
 app.use('/churches', churchesRouter);
 app.use('/churches/:churchId/events', eventsRouter);
 app.use('/events', globalEventsRouter);
