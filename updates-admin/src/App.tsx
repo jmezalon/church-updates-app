@@ -121,9 +121,7 @@ function Landing() {
                   boxShadow: 3
                 }}
               >
-                <Typography variant="h6" sx={{ color: 'white', textAlign: 'center' }}>
-                  Home Screen\n(Event Feed)
-                </Typography>
+                <img src='assets/homepageview.png' alt="home page view" />
               </Box>
             </Box>
           </Box>
