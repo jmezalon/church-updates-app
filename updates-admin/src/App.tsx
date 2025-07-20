@@ -8,6 +8,8 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import homepageImage from './assets/homepageview.png';
+import eventpageImage from './assets/eventpage.png';
 
 const theme = createTheme({
   palette: {
@@ -111,17 +113,26 @@ function Landing() {
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
               <Box 
                 sx={{ 
-                  width: 300, 
-                  height: 600, 
-                  bgcolor: 'secondary.main', 
+                  width: 405, 
+                  height: 615, 
                   borderRadius: 4, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  boxShadow: 3
+                  overflow: 'hidden',
+                  boxShadow: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                <img src='assets/homepageview.png' alt="home page view" />
+                <img 
+                  src={homepageImage} 
+                  alt="Updates App Home Screen - Event Feed" 
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    borderRadius: '16px'
+                  }} 
+                />
               </Box>
             </Box>
           </Box>
@@ -129,7 +140,7 @@ function Landing() {
           {/* Event Detail Feature */}
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row-reverse' }, alignItems: 'center', gap: 4 }}>
             <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
-              <Typography variant="h4" sx={{ fontWeight: 600, color: 'error.main', mb: 2 }}>
+              <Typography variant="h4" sx={{ fon615color: 'error.main', mb: 2 }}>
                 Detailed Event Information
               </Typography>
               <Typography variant="body1" sx={{ color: 'text.primary', mb: 3, fontSize: '1.1rem', lineHeight: 1.6 }}>
@@ -143,19 +154,26 @@ function Landing() {
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
               <Box 
                 sx={{ 
-                  width: 300, 
-                  height: 600, 
-                  bgcolor: 'error.main', 
+                  width: 405, 
+                  height: 615, 
                   borderRadius: 4, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  boxShadow: 3
+                  overflow: 'hidden',
+                  boxShadow: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                <Typography variant="h6" sx={{ color: 'white', textAlign: 'center' }}>
-                  Event Detail\n(Full Information)
-                </Typography>
+                <img 
+                  src={eventpageImage} 
+                  alt="Updates App Event Detail Page" 
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    borderRadius: '16px'
+                  }} 
+                />
               </Box>
             </Box>
           </Box>
@@ -196,7 +214,7 @@ function Landing() {
 // Login Page Component
 function LoginPage() {
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Navbar />
       <Container maxWidth="sm" sx={{ pt: 15, pb: 8 }}>
         <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary', mb: 4, textAlign: 'center' }}>
@@ -213,7 +231,7 @@ function LoginPage() {
 // Enroll Page Component
 function EnrollPage() {
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default' }}>
       <Navbar />
       <Container maxWidth="md" sx={{ pt: 15, pb: 8 }}>
         <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary', mb: 4, textAlign: 'center' }}>
