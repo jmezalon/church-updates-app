@@ -62,10 +62,10 @@ function Navbar() {
 function Landing() {
   const navigate = useNavigate();
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
       <Navbar />
       {/* Add top padding to account for fixed navbar */}
-      <Box sx={{ pt: 10 }}>
+      <Box sx={{ pt: 10, width: '100%' }}>
         {/* Hero Section */}
         <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
           <Typography variant="h2" sx={{ fontWeight: 900, color: 'secondary.main', mb: 2 }}>
@@ -127,6 +127,8 @@ function Landing() {
               </Box>
             </Box>
           </Box>
+          it config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
 
           {/* Event Detail Feature */}
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row-reverse' }, alignItems: 'center', gap: 4 }}>
@@ -164,7 +166,7 @@ function Landing() {
         </Container>
 
         {/* Call to Action Section */}
-        <Box sx={{ bgcolor: 'secondary.main', py: 8, mt: 8 }}>
+        <Box sx={{ bgcolor: 'secondary.main', py: 8, mt: 8, width: '100%' }}>
           <Container maxWidth="md" sx={{ textAlign: 'center' }}>
             <Typography variant="h3" sx={{ fontWeight: 700, color: 'black', mb: 3 }}>
               Ready to Connect Your Church?
