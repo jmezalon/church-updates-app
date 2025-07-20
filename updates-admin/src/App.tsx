@@ -127,9 +127,7 @@ function Landing() {
               </Box>
             </Box>
           </Box>
-          it config --global user.email "you@example.com"
-  git config --global user.name "Your Name"
-
+          
           {/* Event Detail Feature */}
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row-reverse' }, alignItems: 'center', gap: 4 }}>
             <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
