@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
-  const [passphrase, setPassphrase] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, loading, error: authError } = useAuth();
   const navigate = useNavigate();
@@ -15,12 +15,12 @@ export function LoginPage() {
     e.preventDefault();
     setError('');
     
-    if (!email.trim() || !passphrase.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError('Please enter both email and password');
       return;
     }
     
-    const success = await login(email, passphrase);
+    const success = await login(email, password);
     if (success) {
       navigate('/dashboard');
     }
@@ -59,10 +59,10 @@ export function LoginPage() {
               />
               <TextField
                 fullWidth
-                label="Passphrase"
+                label="Password"
                 type="password"
-                value={passphrase}
-                onChange={(e) => setPassphrase(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 margin="normal"
                 required
                 sx={{ mb: 3 }}
