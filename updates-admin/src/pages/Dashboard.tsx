@@ -1,10 +1,19 @@
-import React from 'react';
+// React import not needed with JSX Transform
 import { Box, Container, Typography, Button, Card, CardContent } from '@mui/material';
 import { Navbar } from '../components/Navbar';
 import { useAuth } from '../auth/AuthContext';
+import { ChurchEnrollment } from '../components/ChurchEnrollment';
 
 export function Dashboard() {
   const { user } = useAuth();
+  
+  // Check if user has church assignments
+  const hasChurchAssignments = user?.churchAssignments && user.churchAssignments.length > 0;
+  
+  // If user has no church assignments, show church enrollment flow
+  if (!hasChurchAssignments) {
+    return <ChurchEnrollment user={user!} />;
+  }
   
   return (
     <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
@@ -14,7 +23,10 @@ export function Dashboard() {
           <Typography variant="h2" sx={{ fontWeight: 900, color: 'secondary.main', mb: 2, textAlign: 'center' }}>
             Welcome to Your Dashboard, {user?.name}!
           </Typography>
-          <Typography variant="h5" sx={{ color: 'text.primary', mb: 6, textAlign: 'center' }}>
+          <Typography variant="h5" sx={{ color: 'text.primary', mb: 2, textAlign: 'center' }}>
+            Managing: {user?.churchAssignments?.[0]?.church_name}
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary', mb: 6, textAlign: 'center' }}>
             Manage your church's events and announcements from here.
           </Typography>
           

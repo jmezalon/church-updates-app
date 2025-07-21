@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not needed with JSX Transform
 import { Box, Container, Typography } from '@mui/material';
 import { Navbar } from '../components/Navbar';
 

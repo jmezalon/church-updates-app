@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not needed with JSX Transform
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
