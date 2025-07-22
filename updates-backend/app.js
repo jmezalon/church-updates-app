@@ -13,10 +13,14 @@ const announcementsRouter = require('./routes/announcements');
 const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
 const enrollmentRoutes = require('./routes/enrollment');
+const uploadRoutes = require('./routes/upload');
 const errorHandler = require('./middleware/errorHandler');
 const { initializeDatabase } = require('./db');
 
 app.use(express.json());
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
 
 // Authentication routes
 app.use('/auth', authRouter);
@@ -29,6 +33,9 @@ app.use('/churches/:churchId/events', eventsRouter);
 app.use('/events', globalEventsRouter);
 app.use('/churches/:churchId/donations', donationsRouter);
 app.use('/announcements', announcementsRouter);
+
+// Upload routes
+app.use('/upload', uploadRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

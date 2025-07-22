@@ -9,9 +9,10 @@ import {
   TextField,
   Alert,
   Avatar,
-  IconButton
+  IconButton,
+  Stack
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon, CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import { Navbar } from './Navbar';
 
 interface Church {
@@ -47,6 +48,7 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploading, setUploading] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState<Partial<Church>>({});
@@ -126,6 +128,89 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
       [field]: value
     }));
   };
+
+  const handleImageUpload = async (file: File, field: keyof Church) => {
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file');
+      return;
+    }
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image file must be smaller than 5MB');
+      return;
+    }
+    
+    setUploading(field);
+    setError('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('http://localhost:3000/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: formData
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        handleInputChange(field, data.imageUrl);
+        setSuccess('Image uploaded successfully!');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to upload image');
+      }
+    } catch (err) {
+      setError('Network error while uploading image');
+    }
+    
+    setUploading(null);
+  };
+
+  const ImageUploadField = ({ label, field, value, placeholder }: { 
+    label: string; 
+    field: keyof Church; 
+    value: string; 
+    placeholder: string;
+  }) => (
+    <Stack spacing={2}>
+      <TextField
+        fullWidth
+        label={label}
+        value={editing ? (value || '') : (value || '')}
+        onChange={(e) => handleInputChange(field, e.target.value)}
+        disabled={!editing}
+        placeholder={placeholder}
+      />
+      {editing && (
+        <Button
+          variant="outlined"
+          component="label"
+          startIcon={<CloudUploadIcon />}
+          disabled={uploading === field}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          {uploading === field ? 'Uploading...' : 'Upload Image'}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleImageUpload(file, field);
+            }}
+          />
+        </Button>
+      )}
+    </Stack>
+  );
 
   if (loading) {
     return (
@@ -258,21 +343,20 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
             
             {editing && (
               <CardContent>
-                <TextField
-                  fullWidth
-                  label="Banner Image URL"
-                  value={formData.banner_url || ''}
-                  onChange={(e) => handleInputChange('banner_url', e.target.value)}
-                  placeholder="https://example.com/banner.jpg"
-                  sx={{ mb: 2 }}
-                />
-                <TextField
-                  fullWidth
-                  label="Logo URL"
-                  value={formData.logo_url || ''}
-                  onChange={(e) => handleInputChange('logo_url', e.target.value)}
-                  placeholder="https://example.com/logo.jpg"
-                />
+                <Stack spacing={3}>
+                  <ImageUploadField
+                    label="Banner Image URL"
+                    field="banner_url"
+                    value={formData.banner_url || ''}
+                    placeholder="https://example.com/banner.jpg"
+                  />
+                  <ImageUploadField
+                    label="Logo URL"
+                    field="logo_url"
+                    value={formData.logo_url || ''}
+                    placeholder="https://example.com/logo.jpg"
+                  />
+                </Stack>
               </CardContent>
             )}
           </Card>
@@ -402,14 +486,22 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
                     disabled={!editing}
                     sx={{ mb: 2 }}
                   />
-                  <TextField
-                    fullWidth
-                    label="Senior Pastor Avatar URL"
-                    value={editing ? (formData.senior_pastor_avatar || '') : (church.senior_pastor_avatar || '')}
-                    onChange={(e) => handleInputChange('senior_pastor_avatar', e.target.value)}
-                    disabled={!editing}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
+                  {editing ? (
+                    <ImageUploadField
+                      label="Senior Pastor Avatar URL"
+                      field="senior_pastor_avatar"
+                      value={formData.senior_pastor_avatar || ''}
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  ) : (
+                    <TextField
+                      fullWidth
+                      label="Senior Pastor Avatar URL"
+                      value={church.senior_pastor_avatar || ''}
+                      disabled
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  )}
                 </Box>
 
                 {/* Pastor */}
@@ -433,14 +525,22 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
                     disabled={!editing}
                     sx={{ mb: 2 }}
                   />
-                  <TextField
-                    fullWidth
-                    label="Pastor Avatar URL"
-                    value={editing ? (formData.pastor_avatar || '') : (church.pastor_avatar || '')}
-                    onChange={(e) => handleInputChange('pastor_avatar', e.target.value)}
-                    disabled={!editing}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
+                  {editing ? (
+                    <ImageUploadField
+                      label="Pastor Avatar URL"
+                      field="pastor_avatar"
+                      value={formData.pastor_avatar || ''}
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  ) : (
+                    <TextField
+                      fullWidth
+                      label="Pastor Avatar URL"
+                      value={church.pastor_avatar || ''}
+                      disabled
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  )}
                 </Box>
 
                 {/* Assistant Pastor */}
@@ -464,14 +564,22 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
                     disabled={!editing}
                     sx={{ mb: 2 }}
                   />
-                  <TextField
-                    fullWidth
-                    label="Assistant Pastor Avatar URL"
-                    value={editing ? (formData.assistant_pastor_avatar || '') : (church.assistant_pastor_avatar || '')}
-                    onChange={(e) => handleInputChange('assistant_pastor_avatar', e.target.value)}
-                    disabled={!editing}
-                    placeholder="https://example.com/avatar.jpg"
-                  />
+                  {editing ? (
+                    <ImageUploadField
+                      label="Assistant Pastor Avatar URL"
+                      field="assistant_pastor_avatar"
+                      value={formData.assistant_pastor_avatar || ''}
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  ) : (
+                    <TextField
+                      fullWidth
+                      label="Assistant Pastor Avatar URL"
+                      value={church.assistant_pastor_avatar || ''}
+                      disabled
+                      placeholder="https://example.com/avatar.jpg"
+                    />
+                  )}
                 </Box>
               </Box>
             </CardContent>
