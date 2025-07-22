@@ -22,6 +22,7 @@ import {
 import { Navbar } from './Navbar';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { EventCard } from './EventCard';
+import { AnnouncementCard } from './AnnouncementCard';
 
 interface Church {
   id: number;
@@ -59,6 +60,21 @@ interface Event {
   website?: string;
 }
 
+interface Announcement {
+  id: number;
+  church_id: number;
+  title: string;
+  description?: string;
+  image_url?: string;
+  posted_at: string;
+  type: 'weekly' | 'special' | 'yearly' | 'general';
+  subcategory?: string;
+  start_time?: string;
+  end_time?: string;
+  recurrence_rule?: string;
+  is_special: boolean;
+}
+
 interface ChurchDetailsProps {
   churchId: number;
   onBack: () => void;
@@ -67,8 +83,10 @@ interface ChurchDetailsProps {
 export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   const [church, setChurch] = useState<Church | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [eventsLoading, setEventsLoading] = useState(true);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -84,6 +102,7 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   useEffect(() => {
     loadChurchDetails();
     loadEvents();
+    loadAnnouncements();
   }, [churchId]);
 
   const loadChurchDetails = async () => {
@@ -123,6 +142,37 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
       console.error('Network error while loading events:', err);
     }
     setEventsLoading(false);
+  };
+
+  const loadAnnouncements = async () => {
+    setAnnouncementsLoading(true);
+    try {
+      const response = await fetch(`http://localhost:3000/announcements?church_id=${churchId}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      if (response.ok) {
+        const announcementsData = await response.json();
+        setAnnouncements(announcementsData);
+      } else {
+        console.error('Failed to load announcements');
+      }
+    } catch (err) {
+      console.error('Network error while loading announcements:', err);
+    }
+    setAnnouncementsLoading(false);
+  };
+
+  const handleAnnouncementUpdate = (updatedAnnouncement: Announcement) => {
+    setAnnouncements(prev => 
+      prev.map(announcement => 
+        announcement.id === updatedAnnouncement.id ? updatedAnnouncement : announcement
+      )
+    );
+  };
+
+  const handleAnnouncementDelete = (announcementId: number) => {
+    setAnnouncements(prev => prev.filter(announcement => announcement.id !== announcementId));
   };
 
   const handleEdit = () => {
@@ -601,40 +651,89 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
             </CardContent>
           </Card>
 
-          {/* Events Management Section */}
-          <Card sx={{ mb: 4 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: 'secondary.main' }}>
-                  📅 Church Events
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {events.length} event{events.length !== 1 ? 's' : ''} created
-                </Typography>
-              </Box>
-
-              {eventsLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <Typography>Loading events...</Typography>
-                </Box>
-              ) : events.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
-                    No events created yet.
+          {/* Events and Announcements Grid Layout */}
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '3fr 2fr' }, 
+            gap: 4, 
+            mb: 4 
+          }}>
+            {/* Events Management Section */}
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 600, color: 'secondary.main' }}>
+                    📅 Events
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    Use the "Manage Events" button in your dashboard to create your first event.
+                    {events.length} event{events.length !== 1 ? 's' : ''} created
                   </Typography>
                 </Box>
-              ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {events.map((event) => (
-                    <EventCard key={event.id} event={event} onUpdate={loadEvents} />
-                  ))}
+
+                {eventsLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <Typography>Loading events...</Typography>
+                  </Box>
+                ) : events.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
+                      No events created yet.
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      Use the "Manage Events" button in your dashboard to create your first event.
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {events.map((event) => (
+                      <EventCard key={event.id} event={event} onUpdate={loadEvents} />
+                    ))}
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Announcements Management Section */}
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 600, color: 'error.main' }}>
+                    📢 Announcements
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {announcements.length} announcement{announcements.length !== 1 ? 's' : ''} created
+                  </Typography>
                 </Box>
-              )}
-            </CardContent>
-          </Card>
+
+                {announcementsLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <Typography>Loading announcements...</Typography>
+                  </Box>
+                ) : announcements.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
+                      No announcements created yet.
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      Use the "Manage Announcements" button in your dashboard to create your first announcement.
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {announcements.map((announcement) => (
+                      <AnnouncementCard 
+                        key={announcement.id} 
+                        announcement={announcement} 
+                        authToken={authToken || ''}
+                        onUpdate={handleAnnouncementUpdate}
+                        onDelete={handleAnnouncementDelete}
+                      />
+                    ))}
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Box>
         </Container>
       </Box>
     </Box>
