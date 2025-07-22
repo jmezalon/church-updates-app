@@ -17,11 +17,11 @@ export function Navbar() {
   };
 
   return (
-    <AppBar position="fixed" color="primary" elevation={1} sx={{ borderBottom: 2, borderColor: 'secondary.main', top: 0, left: 0, right: 0 }}>
+    <AppBar position="fixed" color="secondary" elevation={1} sx={{ borderBottom: 2, borderColor: 'secondary.main', top: 0, left: 0, right: 0 }}>
       <Toolbar>
         <Typography 
           variant="h5" 
-          sx={{ flexGrow: 1, fontWeight: 700, color: 'secondary.main', letterSpacing: 2, cursor: 'pointer' }}
+          sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', letterSpacing: 2, cursor: 'pointer' }}
           onClick={handleHomeClick}
         >
           Updates

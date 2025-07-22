@@ -12,6 +12,7 @@ const donationsRouter = require('./routes/donations');
 const announcementsRouter = require('./routes/announcements');
 const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
+const enrollmentRoutes = require('./routes/enrollment');
 const errorHandler = require('./middleware/errorHandler');
 const { initializeDatabase } = require('./db');
 
@@ -20,6 +21,7 @@ app.use(express.json());
 // Authentication routes
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);
+app.use('/enrollment', enrollmentRoutes);
 
 // Existing routes
 app.use('/churches', churchesRouter);

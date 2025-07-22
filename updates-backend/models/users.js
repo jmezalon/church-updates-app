@@ -4,13 +4,13 @@ const bcrypt = require('bcryptjs');
 module.exports = {
   async getAll() {
     const db = getDb();
-    const rows = await db.all('SELECT id, email, name, role, created_at, updated_at FROM users ORDER BY id');
+    const rows = await db.all('SELECT id, email, name, role, enrollment_status, created_at, updated_at FROM users ORDER BY id');
     return rows;
   },
 
   async getById(id) {
     const db = getDb();
-    const row = await db.get('SELECT id, email, name, role, created_at, updated_at FROM users WHERE id = ?', [id]);
+    const row = await db.get('SELECT id, email, name, role, enrollment_status, created_at, updated_at FROM users WHERE id = ?', [id]);
     return row;
   },
 
@@ -117,11 +117,26 @@ module.exports = {
   async assignToChurch(userId, churchId) {
     const db = getDb();
     const result = await db.run(
-      `INSERT INTO church_admin_assignments (user_id, church_id)
-       VALUES (?, ?)`,
+      'INSERT INTO church_admin_assignments (user_id, church_id) VALUES (?, ?)',
       [userId, churchId]
     );
+    
+    // Update user enrollment status to 'assigned'
+    await db.run(
+      'UPDATE users SET enrollment_status = ? WHERE id = ?',
+      ['assigned', userId]
+    );
+    
     return result.lastID;
+  },
+
+  async updateEnrollmentStatus(userId, status) {
+    const db = getDb();
+    await db.run(
+      'UPDATE users SET enrollment_status = ? WHERE id = ?',
+      [status, userId]
+    );
+    return true;
   },
 
   async removeChurchAssignment(userId, churchId) {

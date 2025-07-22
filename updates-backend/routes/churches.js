@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const churches = require('../models/churches');
+const { authenticateToken } = require('./auth');
 
 // GET /churches
 router.get('/', async (req, res, next) => {
@@ -43,11 +44,21 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
-// DELETE /churches/:id
-router.delete('/:id', async (req, res, next) => {
+// DELETE /churches/:id (protected - superuser only)
+router.delete('/:id', authenticateToken, async (req, res, next) => {
   try {
-    await churches.remove(req.params.id);
-    res.status(204).end();
+    // Check if user is superuser
+    if (req.user.role !== 'superuser') {
+      return res.status(403).json({ 
+        error: 'Access denied. Superuser role required.' 
+      });
+    }
+
+    const result = await churches.remove(req.params.id);
+    res.json({
+      message: 'Church deleted successfully',
+      removedAssignments: result.removedAssignments
+    });
   } catch (err) {
     next(err);
   }

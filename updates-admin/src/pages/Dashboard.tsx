@@ -3,16 +3,59 @@ import { Box, Container, Typography, Button, Card, CardContent } from '@mui/mate
 import { Navbar } from '../components/Navbar';
 import { useAuth } from '../auth/AuthContext';
 import { ChurchEnrollment } from '../components/ChurchEnrollment';
+import { SuperuserDashboard } from '../components/SuperuserDashboard';
 
 export function Dashboard() {
   const { user } = useAuth();
   
-  // Check if user has church assignments
-  const hasChurchAssignments = user?.churchAssignments && user.churchAssignments.length > 0;
+  // Route superusers to SuperuserDashboard
+  if (user?.role === 'superuser') {
+    return <SuperuserDashboard />;
+  }
   
-  // If user has no church assignments, show church enrollment flow
-  if (!hasChurchAssignments) {
-    return <ChurchEnrollment user={user!} />;
+  // Handle enrollment status for church admins
+  if (user?.role === 'church_admin') {
+    const enrollmentStatus = user?.enrollment_status || 'none';
+    const hasChurchAssignments = user?.churchAssignments && user.churchAssignments.length > 0;
+    
+    // If user has submitted enrollment but not yet assigned, show pending message
+    if (enrollmentStatus === 'pending' && !hasChurchAssignments) {
+      return (
+        <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
+          <Navbar />
+          <Box sx={{ pt: 10, width: '100%' }}>
+            <Container maxWidth="md" sx={{ py: 8 }}>
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'secondary.main', mb: 4, textAlign: 'center' }}>
+                🕐 Enrollment Pending
+              </Typography>
+              
+              <Card sx={{ p: 4, textAlign: 'center' }}>
+                <CardContent>
+                  <Typography variant="h5" sx={{ fontWeight: 600, color: 'success.main', mb: 3 }}>
+                    ✅ Church Enrollment Submitted Successfully!
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: 'text.primary', mb: 3, lineHeight: 1.6 }}>
+                    Thank you for submitting your church enrollment request. Our team is currently reviewing your application.
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: 'text.primary', mb: 3, lineHeight: 1.6 }}>
+                    You will receive an email notification once your church has been approved and you have been assigned as an admin.
+                    After approval, you'll be able to access the full admin dashboard to manage your church's events and announcements.
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                    Please check your email for updates on your request status.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Container>
+          </Box>
+        </Box>
+      );
+    }
+    
+    // If user has no church assignments and no pending enrollment, show enrollment form
+    if (!hasChurchAssignments && enrollmentStatus === 'none') {
+      return <ChurchEnrollment />;
+    }
   }
   
   return (

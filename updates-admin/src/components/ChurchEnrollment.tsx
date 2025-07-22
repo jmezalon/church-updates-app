@@ -10,17 +10,10 @@ import {
   Alert
 } from '@mui/material';
 import { Navbar } from './Navbar';
+import { useAuth } from '../auth/AuthContext';
 
-interface ChurchEnrollmentProps {
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    role: string;
-  };
-}
-
-export function ChurchEnrollment({ user }: ChurchEnrollmentProps) {
+export function ChurchEnrollment() {
+  const { user, refreshUser } = useAuth();
   const [churchName, setChurchName] = useState('');
   const [pastorName, setPastorName] = useState('');
   const [address, setAddress] = useState('');
@@ -32,115 +25,54 @@ export function ChurchEnrollment({ user }: ChurchEnrollmentProps) {
   const [website, setWebsite] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
 
     try {
-      // First create the church
-      const churchResponse = await fetch('http://localhost:3000/churches', {
+      const authToken = localStorage.getItem('authToken');
+      
+      // Submit church enrollment using new API endpoint
+      const response = await fetch('http://localhost:3000/enrollment/submit-church', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
-          name: churchName,
-          senior_pastor: pastorName,
+          churchName,
+          pastorName,
           address,
           city,
           state,
           zip,
-          contact_email: contactEmail,
-          contact_phone: contactPhone,
+          contactEmail,
+          contactPhone,
           website,
-          description
-        })
+          description,
+        }),
       });
 
-      if (!churchResponse.ok) {
-        throw new Error('Failed to create church');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit church enrollment');
       }
 
-      const newChurch = await churchResponse.json();
+      const result = await response.json();
+      console.log('Church enrollment submitted successfully:', result);
 
-      // Send assignment request to superuser (in a real app, this would send an email)
-      // For now, we'll create a simple notification system
-      console.log('Church enrollment request submitted:', {
-        userId: user.id,
-        churchId: newChurch.id,
-        churchName: newChurch.name,
-        userEmail: user.email,
-        userName: user.name
-      });
+      // Refresh user data to reflect updated enrollment status
+      await refreshUser();
 
-      setSuccess(true);
       setLoading(false);
-
-      // In a real implementation, you would send an email to the superuser
-      // For demo purposes, we'll show a success message
-      
-    } catch (err) {
-      console.error('Church enrollment error:', err);
-      setError('Failed to submit church enrollment. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit church enrollment. Please try again.');
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
-        <Navbar />
-        <Box sx={{ pt: 10, width: '100%' }}>
-          <Container maxWidth="md" sx={{ py: 8 }}>
-            <Card sx={{ p: 4, textAlign: 'center' }}>
-              <CardContent>
-                <Typography variant="h3" sx={{ fontWeight: 700, color: 'secondary.main', mb: 3 }}>
-                  🎉 Enrollment Request Submitted!
-                </Typography>
-                <Typography variant="h6" sx={{ color: 'text.primary', mb: 4 }}>
-                  Thank you for enrolling your church with Updates!
-                </Typography>
-                <Typography variant="body1" sx={{ color: 'text.primary', mb: 4, lineHeight: 1.8 }}>
-                  Your church enrollment request has been submitted successfully. Here's what happens next:
-                </Typography>
-                <Box sx={{ textAlign: 'left', mb: 4 }}>
-                  <Typography variant="body1" sx={{ color: 'text.primary', mb: 2 }}>
-                    ✅ <strong>Request Submitted:</strong> Your church "{churchName}" has been created in our system
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: 'text.primary', mb: 2 }}>
-                    📧 <strong>Superuser Notification:</strong> Our admin team has been notified of your request
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: 'text.primary', mb: 2 }}>
-                    ⏳ <strong>Review Process:</strong> We'll review your request and assign you as admin for your church
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: 'text.primary', mb: 2 }}>
-                    📬 <strong>Email Notification:</strong> You'll receive an email confirmation once approved
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: 'text.primary', mb: 2 }}>
-                    🚀 <strong>Start Managing:</strong> Once approved, you can manage events and announcements
-                  </Typography>
-                </Box>
-                <Alert severity="info" sx={{ mb: 3 }}>
-                  <Typography variant="body2">
-                    <strong>Demo Note:</strong> In this demo environment, you can ask the superuser 
-                    (admin@updates.com) to manually assign you to your church using the admin tools.
-                  </Typography>
-                </Alert>
-                <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                  Please check your email ({user.email}) for updates on your request status.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Container>
-        </Box>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
@@ -151,7 +83,7 @@ export function ChurchEnrollment({ user }: ChurchEnrollmentProps) {
             Enroll Your Church
           </Typography>
           <Typography variant="h6" sx={{ color: 'text.primary', mb: 6, textAlign: 'center' }}>
-            Welcome {user.name}! Let's get your church set up in the Updates system.
+            Welcome {user?.name}! Let's get your church set up in the Updates system.
           </Typography>
 
           {error && (

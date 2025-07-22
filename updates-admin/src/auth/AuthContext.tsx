@@ -9,6 +9,7 @@ interface User {
   email: string;
   name: string;
   role: string;
+  enrollment_status?: string;
   churchAssignments?: Array<{
     id: number;
     user_id: number;
@@ -24,6 +25,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   error: string | null;
 }
 
@@ -123,6 +125,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
   };
 
+  const refreshUser = async (): Promise<void> => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.valid && data.user) {
+          setUser(data.user);
+        }
+      }
+    } catch (err) {
+      console.error('User refresh failed:', err);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       isLoggedIn, 
@@ -130,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading, 
       login, 
       logout, 
+      refreshUser,
       error 
     }}>
       {children}

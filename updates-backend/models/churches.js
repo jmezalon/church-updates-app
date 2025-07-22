@@ -44,7 +44,31 @@ module.exports = {
   },
   async remove(id) {
     const db = getDb();
+    
+    // First, get all users assigned to this church so we can update their enrollment status
+    const assignedUsers = await db.all(
+      'SELECT user_id FROM church_admin_assignments WHERE church_id = ?', 
+      [id]
+    );
+    
+    // Remove all admin assignments for this church
+    await db.run('DELETE FROM church_admin_assignments WHERE church_id = ?', [id]);
+    
+    // Update enrollment status for users who were assigned to this church
+    // Set them back to 'none' so they can enroll in a different church if needed
+    for (const assignment of assignedUsers) {
+      await db.run(
+        'UPDATE users SET enrollment_status = ? WHERE id = ?',
+        ['none', assignment.user_id]
+      );
+    }
+    
+    // Finally, delete the church
     await db.run('DELETE FROM churches WHERE id = ?', [id]);
-    return true;
+    
+    return {
+      success: true,
+      removedAssignments: assignedUsers.length
+    };
   }
 };

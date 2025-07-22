@@ -14,7 +14,19 @@ router.get('/', authenticateToken, async (req, res, next) => {
     }
     
     const allUsers = await users.getAll();
-    res.json(allUsers);
+    
+    // Add church assignments for each user
+    const usersWithAssignments = await Promise.all(
+      allUsers.map(async (user) => {
+        const churchAssignments = await users.getChurchAssignments(user.id);
+        return {
+          ...user,
+          churchAssignments
+        };
+      })
+    );
+    
+    res.json(usersWithAssignments);
   } catch (err) {
     next(err);
   }
