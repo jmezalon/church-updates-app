@@ -17,6 +17,9 @@ export function Dashboard() {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'dashboard' | 'church-details' | 'profile' | 'manage-events' | 'manage-announcements'>('dashboard');
   const [selectedChurchId, setSelectedChurchId] = useState<number | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [eventCount, setEventCount] = useState(0);
+  const [announcementCount, setAnnouncementCount] = useState(0);
   
   // Handle navigation from navbar
   useEffect(() => {
@@ -26,6 +29,48 @@ export function Dashboard() {
       setCurrentView('dashboard');
     }
   }, [location.pathname]);
+
+  // Load stats data for Quick Overview
+  useEffect(() => {
+    if (user?.churchAssignments?.[0]?.church_id) {
+      loadStats();
+    }
+  }, [user]);
+
+  const loadStats = async () => {
+    if (!user?.churchAssignments?.[0]?.church_id) return;
+    
+    const churchId = user.churchAssignments[0].church_id;
+    const authToken = localStorage.getItem('authToken');
+    
+    setStatsLoading(true);
+    
+    try {
+      // Load events count
+      const eventsResponse = await fetch(`http://localhost:3000/churches/${churchId}/events`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      
+      if (eventsResponse.ok) {
+        const eventsData = await eventsResponse.json();
+        setEventCount(eventsData.length);
+      }
+      
+      // Load announcements count
+      const announcementsResponse = await fetch(`http://localhost:3000/announcements?church_id=${churchId}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      
+      if (announcementsResponse.ok) {
+        const announcementsData = await announcementsResponse.json();
+        setAnnouncementCount(announcementsData.length);
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+    
+    setStatsLoading(false);
+  };
   
   // Route superusers to SuperuserDashboard
   if (user?.role === 'superuser') {
@@ -233,18 +278,18 @@ export function Dashboard() {
               <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary', mb: 3, textAlign: 'center' }}>
                 📊 Quick Overview
               </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 3, textAlign: 'center' }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 4, textAlign: 'center' }}>
                 <Box>
-                  <Typography variant="h3" sx={{ fontWeight: 700, color: 'secondary.main' }}>5</Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 700, color: 'secondary.main' }}>
+                    {statsLoading ? '...' : eventCount}
+                  </Typography>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>Active Events</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="h3" sx={{ fontWeight: 700, color: 'error.main' }}>12</Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 700, color: 'error.main' }}>
+                    {statsLoading ? '...' : announcementCount}
+                  </Typography>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>Announcements</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary' }}>248</Typography>
-                  <Typography variant="body1" sx={{ color: 'text.secondary' }}>Community Members</Typography>
                 </Box>
               </Box>
             </CardContent>
