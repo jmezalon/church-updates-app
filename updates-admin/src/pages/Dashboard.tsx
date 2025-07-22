@@ -1,16 +1,41 @@
 // React import not needed with JSX Transform
+import { useState } from 'react';
 import { Box, Container, Typography, Button, Card, CardContent } from '@mui/material';
 import { Navbar } from '../components/Navbar';
-import { useAuth } from '../auth/AuthContext';
 import { ChurchEnrollment } from '../components/ChurchEnrollment';
 import { SuperuserDashboard } from '../components/SuperuserDashboard';
+import { ChurchDetails } from '../components/ChurchDetails';
+import { useAuth } from '../auth/AuthContext';
 
 export function Dashboard() {
   const { user } = useAuth();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'church-details'>('dashboard');
+  const [selectedChurchId, setSelectedChurchId] = useState<number | null>(null);
   
   // Route superusers to SuperuserDashboard
   if (user?.role === 'superuser') {
     return <SuperuserDashboard />;
+  }
+  
+  // Handle church details navigation
+  const handleChurchClick = (churchId: number) => {
+    setSelectedChurchId(churchId);
+    setCurrentView('church-details');
+  };
+  
+  const handleBackToDashboard = () => {
+    setCurrentView('dashboard');
+    setSelectedChurchId(null);
+  };
+  
+  // Show church details if selected
+  if (currentView === 'church-details' && selectedChurchId) {
+    return (
+      <ChurchDetails 
+        churchId={selectedChurchId} 
+        onBack={handleBackToDashboard} 
+      />
+    );
   }
   
   // Handle enrollment status for church admins
@@ -66,7 +91,20 @@ export function Dashboard() {
           <Typography variant="h2" sx={{ fontWeight: 900, color: 'secondary.main', mb: 2, textAlign: 'center' }}>
             Welcome to Your Dashboard, {user?.name}!
           </Typography>
-          <Typography variant="h5" sx={{ color: 'text.primary', mb: 2, textAlign: 'center' }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              color: 'primary.main', 
+              mb: 2, 
+              textAlign: 'center',
+              cursor: 'pointer',
+              textDecoration: 'none',
+              '&:hover': {
+                color: 'secondary.main'
+              }
+            }}
+            onClick={() => handleChurchClick(user?.churchAssignments?.[0]?.church_id || 0)}
+          >
             Managing: {user?.churchAssignments?.[0]?.church_name}
           </Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary', mb: 6, textAlign: 'center' }}>

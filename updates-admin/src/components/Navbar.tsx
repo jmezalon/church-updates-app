@@ -37,7 +37,7 @@ export function Navbar() {
           </>
         ) : (
           <>
-            <Button color="inherit" onClick={() => navigate('/enroll')} sx={{ color: 'secondary.main', mr: 2, fontWeight: 600 }}>
+            <Button color="inherit" onClick={() => navigate('/enroll')} sx={{ color: 'text.primary', mr: 2, fontWeight: 600 }}>
               Enroll
             </Button>
             <Button color="inherit" onClick={() => navigate('/login')} sx={{ color: 'error.main', fontWeight: 600 }}>
