@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const users = require('../models/users');
 
 // JWT secret - in production, this should be in environment variables
@@ -199,6 +200,62 @@ router.get('/profile', authenticateToken, async (req, res, next) => {
     
   } catch (err) {
     next(err);
+  }
+});
+
+// POST /auth/change-password - Change user password
+router.post('/change-password', authenticateToken, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.userId;
+    
+    console.log('Password change request for user:', userId);
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        error: 'Current password and new password are required' 
+      });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        error: 'New password must be at least 6 characters long' 
+      });
+    }
+    
+    // Get user from database with password hash
+    const user = await users.getByIdWithPassword(userId);
+    if (!user) {
+      console.log('User not found:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    console.log('User found, verifying current password');
+    
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isCurrentPasswordValid) {
+      console.log('Current password is incorrect for user:', userId);
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+    
+    console.log('Current password verified, updating to new password');
+    
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Update password in database
+    await users.updatePassword(userId, newPasswordHash);
+    
+    console.log('Password updated successfully for user:', userId);
+    
+    res.json({ message: 'Password changed successfully' });
+    
+  } catch (err) {
+    console.error('Password change error:', err);
+    res.status(500).json({ 
+      error: 'Internal server error while changing password. Please try again.' 
+    });
   }
 });
 

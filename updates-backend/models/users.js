@@ -14,6 +14,12 @@ module.exports = {
     return row;
   },
 
+  async getByIdWithPassword(id) {
+    const db = getDb();
+    const row = await db.get('SELECT id, email, name, role, enrollment_status, password_hash, created_at, updated_at FROM users WHERE id = ?', [id]);
+    return row;
+  },
+
   async getByEmail(email) {
     const db = getDb();
     const row = await db.get('SELECT * FROM users WHERE email = ?', [email]);
@@ -131,12 +137,19 @@ module.exports = {
   },
 
   async updateEnrollmentStatus(userId, status) {
-    const db = getDb();
+    const db = await getDb();
     await db.run(
       'UPDATE users SET enrollment_status = ? WHERE id = ?',
       [status, userId]
     );
-    return true;
+  },
+
+  async updatePassword(userId, passwordHash) {
+    const db = await getDb();
+    await db.run(
+      'UPDATE users SET password_hash = ? WHERE id = ?',
+      [passwordHash, userId]
+    );
   },
 
   async removeChurchAssignment(userId, churchId) {

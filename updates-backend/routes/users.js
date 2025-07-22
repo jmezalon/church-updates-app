@@ -87,13 +87,15 @@ router.put('/:id', authenticateToken, async (req, res, next) => {
   }
 });
 
-// DELETE /users/:id (protected - superuser only)
+// DELETE /users/:id (protected - superuser or own account)
 router.delete('/:id', authenticateToken, async (req, res, next) => {
   try {
-    // Check if user is superuser
-    if (req.user.role !== 'superuser') {
+    const userId = parseInt(req.params.id);
+    
+    // Check if user is deleting their own account or is superuser
+    if (req.user.userId !== userId && req.user.role !== 'superuser') {
       return res.status(403).json({ 
-        error: 'Access denied. Superuser role required.' 
+        error: 'Access denied. You can only delete your own account.' 
       });
     }
     

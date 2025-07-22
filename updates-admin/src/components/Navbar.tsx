@@ -28,7 +28,18 @@ export function Navbar() {
         </Typography>
         {isLoggedIn ? (
           <>
-            <Typography variant="body1" sx={{ color: 'text.primary', mr: 2 }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: 'text.primary', 
+                mr: 2,
+                cursor: 'pointer',
+                '&:hover': {
+                  color: 'error.main'
+                }
+              }}
+              onClick={() => navigate('/profile')}
+            >
               Welcome, {user?.name}
             </Typography>
             <Button color="inherit" onClick={logout} sx={{ color: 'error.main', fontWeight: 600 }}>

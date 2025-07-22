@@ -1,16 +1,29 @@
 // React import not needed with JSX Transform
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Container, Typography, Button, Card, CardContent } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { ChurchEnrollment } from '../components/ChurchEnrollment';
 import { SuperuserDashboard } from '../components/SuperuserDashboard';
 import { ChurchDetails } from '../components/ChurchDetails';
+import { AdminProfile } from '../components/AdminProfile';
 import { useAuth } from '../auth/AuthContext';
 
 export function Dashboard() {
   const { user } = useAuth();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'church-details'>('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'church-details' | 'profile'>('dashboard');
   const [selectedChurchId, setSelectedChurchId] = useState<number | null>(null);
+  
+  // Handle navigation from navbar
+  useEffect(() => {
+    if (location.pathname === '/profile') {
+      setCurrentView('profile');
+    } else if (location.pathname === '/dashboard') {
+      setCurrentView('dashboard');
+    }
+  }, [location.pathname]);
   
   // Route superusers to SuperuserDashboard
   if (user?.role === 'superuser') {
@@ -26,6 +39,8 @@ export function Dashboard() {
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
     setSelectedChurchId(null);
+    // Navigate to dashboard route to ensure proper URL state
+    navigate('/dashboard');
   };
   
   // Show church details if selected
@@ -33,6 +48,15 @@ export function Dashboard() {
     return (
       <ChurchDetails 
         churchId={selectedChurchId} 
+        onBack={handleBackToDashboard} 
+      />
+    );
+  }
+  
+  // Show profile page if selected
+  if (currentView === 'profile') {
+    return (
+      <AdminProfile 
         onBack={handleBackToDashboard} 
       />
     );
