@@ -7,13 +7,15 @@ import { ChurchEnrollment } from '../components/ChurchEnrollment';
 import { SuperuserDashboard } from '../components/SuperuserDashboard';
 import { ChurchDetails } from '../components/ChurchDetails';
 import { AdminProfile } from '../components/AdminProfile';
+import { ManageEvents } from '../components/ManageEvents';
+import { ManageAnnouncements } from '../components/ManageAnnouncements';
 import { useAuth } from '../auth/AuthContext';
 
 export function Dashboard() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'church-details' | 'profile'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'church-details' | 'profile' | 'manage-events' | 'manage-announcements'>('dashboard');
   const [selectedChurchId, setSelectedChurchId] = useState<number | null>(null);
   
   // Handle navigation from navbar
@@ -42,6 +44,26 @@ export function Dashboard() {
     // Navigate to dashboard route to ensure proper URL state
     navigate('/dashboard');
   };
+
+  // Handle manage events navigation
+  const handleManageEvents = () => {
+    setCurrentView('manage-events');
+  };
+
+  // Handle manage announcements navigation
+  const handleManageAnnouncements = () => {
+    setCurrentView('manage-announcements');
+  };
+
+  // Handle event creation completion
+  const handleEventCreated = (shouldShowChurch: boolean) => {
+    if (shouldShowChurch && user?.churchAssignments?.[0]?.church_id) {
+      setSelectedChurchId(user.churchAssignments[0].church_id);
+      setCurrentView('church-details');
+    } else {
+      setCurrentView('dashboard');
+    }
+  };
   
   // Show church details if selected
   if (currentView === 'church-details' && selectedChurchId) {
@@ -53,6 +75,36 @@ export function Dashboard() {
     );
   }
   
+  // Show manage events page if selected
+  if (currentView === 'manage-events') {
+    return (
+      <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
+        <Navbar />
+        <Box sx={{ pt: 10, width: '100%' }}>
+          <ManageEvents 
+            onBack={handleBackToDashboard}
+            onEventCreated={handleEventCreated}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
+  // Show manage announcements page if selected
+  if (currentView === 'manage-announcements') {
+    return (
+      <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
+        <Navbar />
+        <Box sx={{ pt: 10, width: '100%' }}>
+          <ManageAnnouncements 
+            user={user!}
+            onBack={handleBackToDashboard}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
   // Show profile page if selected
   if (currentView === 'profile') {
     return (
@@ -145,7 +197,12 @@ export function Dashboard() {
                 <Typography variant="body1" sx={{ color: 'text.primary', mb: 3 }}>
                   Add, edit, and delete your church's upcoming events. Keep your community informed about services, meetings, and special occasions.
                 </Typography>
-                <Button variant="contained" color="secondary" sx={{ fontWeight: 600 }}>
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  sx={{ fontWeight: 600 }}
+                  onClick={handleManageEvents}
+                >
                   Manage Events
                 </Button>
               </CardContent>
@@ -159,7 +216,11 @@ export function Dashboard() {
                 <Typography variant="body1" sx={{ color: 'text.primary', mb: 3 }}>
                   Create and manage church announcements, reminders, and important updates for your congregation.
                 </Typography>
-                <Button variant="contained" sx={{ bgcolor: 'error.main', color: 'white', fontWeight: 600, '&:hover': { bgcolor: '#d32f2f' } }}>
+                <Button 
+                  variant="contained" 
+                  sx={{ bgcolor: 'error.main', color: 'white', fontWeight: 600, '&:hover': { bgcolor: '#d32f2f' } }}
+                  onClick={handleManageAnnouncements}
+                >
                   Manage Announcements
                 </Button>
               </CardContent>

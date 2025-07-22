@@ -1,5 +1,6 @@
 const express = require('express');
 const Announcements = require('../models/announcements');
+const { authenticateToken } = require('./auth');
 const router = express.Router();
 
 // GET /announcements - Get all announcements (for landing page)
@@ -38,7 +39,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /announcements - Create new announcement
-router.post('/', async (req, res, next) => {
+router.post('/', authenticateToken, async (req, res, next) => {
   try {
     const { church_id, ...data } = req.body;
     if (!church_id) {
@@ -53,7 +54,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /announcements/:id - Update announcement
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', authenticateToken, async (req, res, next) => {
   try {
     const announcement = await Announcements.update(req.params.id, req.body);
     if (!announcement) {
@@ -66,7 +67,7 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // DELETE /announcements/:id - Delete announcement
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', authenticateToken, async (req, res, next) => {
   try {
     await Announcements.remove(req.params.id);
     res.status(204).end();

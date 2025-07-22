@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const events = require('../models/events');
+const { authenticateToken } = require('./auth');
 
 // GET /churches/:churchId/events (mounted at /churches/:churchId/events)
 router.get('/', async (req, res, next) => {
@@ -24,7 +25,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /churches/:churchId/events (mounted at /churches/:churchId/events)
-router.post('/', async (req, res, next) => {
+router.post('/', authenticateToken, async (req, res, next) => {
   try {
     const newEvent = await events.create(req.params.churchId, req.body);
     res.status(201).json(newEvent);
@@ -34,7 +35,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /events/:id
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', authenticateToken, async (req, res, next) => {
   try {
     const updated = await events.update(req.params.id, req.body);
     res.json(updated);
@@ -44,7 +45,7 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // DELETE /events/:id
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', authenticateToken, async (req, res, next) => {
   try {
     await events.remove(req.params.id);
     res.status(204).end();

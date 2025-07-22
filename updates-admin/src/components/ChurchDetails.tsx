@@ -1,19 +1,27 @@
 import { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  Button, 
-  Card, 
-  CardContent, 
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
   TextField,
   Alert,
+  Stack,
   Avatar,
-  IconButton,
-  Stack
+  Card,
+  CardContent,
+  IconButton
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon, CloudUpload as CloudUploadIcon } from '@mui/icons-material';
+import {
+  ArrowBack as ArrowBackIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  CloudUpload as CloudUploadIcon
+} from '@mui/icons-material';
 import { Navbar } from './Navbar';
+import { useImageUpload } from '../hooks/useImageUpload';
+import { EventCard } from './EventCard';
 
 interface Church {
   id: number;
@@ -36,6 +44,21 @@ interface Church {
   description?: string;
 }
 
+interface Event {
+  id: number;
+  church_id: number;
+  title: string;
+  description?: string;
+  start_datetime: string;
+  end_datetime?: string;
+  location?: string;
+  image_url?: string;
+  price?: number;
+  contact_email?: string;
+  contact_phone?: string;
+  website?: string;
+}
+
 interface ChurchDetailsProps {
   churchId: number;
   onBack: () => void;
@@ -43,20 +66,24 @@ interface ChurchDetailsProps {
 
 export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   const [church, setChurch] = useState<Church | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [eventsLoading, setEventsLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [uploading, setUploading] = useState<string | null>(null);
-
   // Form state
   const [formData, setFormData] = useState<Partial<Church>>({});
 
   const authToken = localStorage.getItem('authToken');
+  
+  // Use shared image upload hook
+  const imageUpload = useImageUpload(authToken || '');
 
   useEffect(() => {
     loadChurchDetails();
+    loadEvents();
   }, [churchId]);
 
   const loadChurchDetails = async () => {
@@ -77,6 +104,25 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
       setError('Network error while loading church details');
     }
     setLoading(false);
+  };
+
+  const loadEvents = async () => {
+    setEventsLoading(true);
+    try {
+      const response = await fetch(`http://localhost:3000/churches/${churchId}/events`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      if (response.ok) {
+        const eventsData = await response.json();
+        setEvents(eventsData);
+      } else {
+        console.error('Failed to load events');
+      }
+    } catch (err) {
+      console.error('Network error while loading events:', err);
+    }
+    setEventsLoading(false);
   };
 
   const handleEdit = () => {
@@ -132,46 +178,16 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   const handleImageUpload = async (file: File, field: keyof Church) => {
     if (!file) return;
     
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
-      return;
-    }
-    
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image file must be smaller than 5MB');
-      return;
-    }
-    
-    setUploading(field);
+    // Clear any existing errors
     setError('');
+    setSuccess('');
+    imageUpload.clearMessages();
     
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      const response = await fetch('http://localhost:3000/upload/image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: formData
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        handleInputChange(field, data.imageUrl);
-        setSuccess('Image uploaded successfully!');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to upload image');
-      }
-    } catch (err) {
-      setError('Network error while uploading image');
+    // Use shared image upload utility
+    const imageUrl = await imageUpload.uploadImage(file);
+    if (imageUrl) {
+      handleInputChange(field, imageUrl);
     }
-    
-    setUploading(null);
   };
 
   const ImageUploadField = ({ label, field, value, placeholder }: { 
@@ -194,10 +210,10 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
           variant="outlined"
           component="label"
           startIcon={<CloudUploadIcon />}
-          disabled={uploading === field}
+          disabled={imageUpload.uploading}
           sx={{ alignSelf: 'flex-start' }}
         >
-          {uploading === field ? 'Uploading...' : 'Upload Image'}
+          {imageUpload.uploading ? 'Uploading...' : 'Upload Image'}
           <input
             type="file"
             accept="image/*"
@@ -286,14 +302,14 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
           </Box>
 
           {/* Alerts */}
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-              {error}
+          {(error || imageUpload.error) && (
+            <Alert severity="error" sx={{ mb: 3 }} onClose={() => { setError(''); imageUpload.clearMessages(); }}>
+              {error || imageUpload.error}
             </Alert>
           )}
-          {success && (
-            <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess('')}>
-              {success}
+          {(success || imageUpload.success) && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              {success || imageUpload.success}
             </Alert>
           )}
 
@@ -585,15 +601,38 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
             </CardContent>
           </Card>
 
-          {/* Future: Events and Announcements sections will go here */}
+          {/* Events Management Section */}
           <Card sx={{ mb: 4 }}>
             <CardContent>
-              <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.secondary', mb: 2 }}>
-                📅 Events & Announcements
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                Event and announcement management will be available here soon.
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: 'secondary.main' }}>
+                  📅 Church Events
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {events.length} event{events.length !== 1 ? 's' : ''} created
+                </Typography>
+              </Box>
+
+              {eventsLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <Typography>Loading events...</Typography>
+                </Box>
+              ) : events.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
+                    No events created yet.
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Use the "Manage Events" button in your dashboard to create your first event.
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {events.map((event) => (
+                    <EventCard key={event.id} event={event} onUpdate={loadEvents} />
+                  ))}
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Container>
