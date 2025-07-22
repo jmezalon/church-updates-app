@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const users = require('../models/users');
+const { sendPasswordResetEmail } = require('../services/emailService');
 
 // JWT secret - in production, this should be in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -255,6 +257,164 @@ router.post('/change-password', authenticateToken, async (req, res, next) => {
     console.error('Password change error:', err);
     res.status(500).json({ 
       error: 'Internal server error while changing password. Please try again.' 
+    });
+  }
+});
+
+// POST /auth/forgot-password - Request password reset
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        error: 'Email is required' 
+      });
+    }
+    
+    // Check if user exists
+    const user = await users.getByEmail(email);
+    if (!user) {
+      // Don't reveal if user exists or not for security
+      return res.json({ 
+        message: 'If an account with that email exists, a password reset link has been sent.' 
+      });
+    }
+    
+    // Check rate limiting (1 request per hour)
+    const canRequest = await users.canRequestPasswordReset(email);
+    if (!canRequest) {
+      return res.status(429).json({ 
+        error: 'Password reset already requested. Please wait 1 hour before requesting again.' 
+      });
+    }
+    
+    // Generate secure reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = Date.now() + (30 * 60 * 1000); // 30 minutes from now
+    
+    // Save reset token to database
+    await users.setPasswordResetToken(email, resetToken, expiresAt);
+    
+    // Send reset email
+    const emailResult = await sendPasswordResetEmail(email, user.name, resetToken);
+    
+    if (!emailResult.success) {
+      console.error('Failed to send password reset email:', emailResult.error);
+      return res.status(500).json({ 
+        error: 'Failed to send password reset email. Please try again later.' 
+      });
+    }
+    
+    console.log(`Password reset requested for user: ${user.id} (${email})`);
+    
+    res.json({ 
+      message: 'If an account with that email exists, a password reset link has been sent.' 
+    });
+    
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ 
+      error: 'Internal server error. Please try again later.' 
+    });
+  }
+});
+
+// GET /auth/verify-reset-token - Verify reset token validity
+router.get('/verify-reset-token', async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    
+    if (!token) {
+      return res.status(400).json({ 
+        error: 'Reset token is required' 
+      });
+    }
+    
+    // Find user by reset token
+    const user = await users.getByPasswordResetToken(token);
+    
+    if (!user) {
+      return res.status(400).json({ 
+        error: 'Invalid or expired reset token' 
+      });
+    }
+    
+    // Check if token has expired
+    if (Date.now() > user.password_reset_expires) {
+      // Clean up expired token
+      await users.clearPasswordResetToken(user.id);
+      return res.status(400).json({ 
+        error: 'Reset token has expired. Please request a new one.' 
+      });
+    }
+    
+    res.json({ 
+      valid: true,
+      email: user.email,
+      name: user.name
+    });
+    
+  } catch (err) {
+    console.error('Verify reset token error:', err);
+    res.status(500).json({ 
+      error: 'Internal server error. Please try again later.' 
+    });
+  }
+});
+
+// POST /auth/reset-password - Reset password with token
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ 
+        error: 'Reset token and new password are required' 
+      });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        error: 'New password must be at least 6 characters long' 
+      });
+    }
+    
+    // Find user by reset token
+    const user = await users.getByPasswordResetToken(token);
+    
+    if (!user) {
+      return res.status(400).json({ 
+        error: 'Invalid or expired reset token' 
+      });
+    }
+    
+    // Check if token has expired
+    if (Date.now() > user.password_reset_expires) {
+      // Clean up expired token
+      await users.clearPasswordResetToken(user.id);
+      return res.status(400).json({ 
+        error: 'Reset token has expired. Please request a new one.' 
+      });
+    }
+    
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Update password and clear reset token (single-use)
+    await users.updatePassword(user.id, newPasswordHash);
+    await users.clearPasswordResetToken(user.id);
+    
+    console.log(`Password reset completed for user: ${user.id} (${user.email})`);
+    
+    res.json({ 
+      message: 'Password reset successfully. You can now log in with your new password.' 
+    });
+    
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ 
+      error: 'Internal server error. Please try again later.' 
     });
   }
 });

@@ -8,6 +8,8 @@ import { Landing } from './pages/Landing';
 import { LoginPage } from './pages/LoginPage';
 import { EnrollPage } from './pages/EnrollPage';
 import { Dashboard } from './pages/Dashboard';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { theme } from './theme/theme';
 
 function App() {
@@ -41,6 +43,16 @@ function App() {
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
+            } />
+            <Route path="/forgot-password" element={
+              <PublicRoute>
+                <ForgotPassword />
+              </PublicRoute>
+            } />
+            <Route path="/reset-password" element={
+              <PublicRoute>
+                <ResetPassword />
+              </PublicRoute>
             } />
           </Routes>
         </Router>

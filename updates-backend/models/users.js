@@ -144,12 +144,53 @@ module.exports = {
     );
   },
 
-  async updatePassword(userId, passwordHash) {
-    const db = await getDb();
+  async updatePassword(id, newPasswordHash) {
+    const db = getDb();
+    await db.run('UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [newPasswordHash, id]);
+    return true;
+  },
+
+  async setPasswordResetToken(email, token, expiresAt) {
+    const db = getDb();
+    const now = Date.now();
     await db.run(
-      'UPDATE users SET password_hash = ? WHERE id = ?',
-      [passwordHash, userId]
+      'UPDATE users SET password_reset_token = ?, password_reset_expires = ?, password_reset_requested_at = ?, updated_at = CURRENT_TIMESTAMP WHERE email = ?',
+      [token, expiresAt, now, email]
     );
+    return true;
+  },
+
+  async getByPasswordResetToken(token) {
+    const db = getDb();
+    const row = await db.get(
+      'SELECT id, email, name, role, password_reset_token, password_reset_expires FROM users WHERE password_reset_token = ?',
+      [token]
+    );
+    return row;
+  },
+
+  async clearPasswordResetToken(id) {
+    const db = getDb();
+    await db.run(
+      'UPDATE users SET password_reset_token = NULL, password_reset_expires = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [id]
+    );
+    return true;
+  },
+
+  async canRequestPasswordReset(email) {
+    const db = getDb();
+    const user = await db.get(
+      'SELECT password_reset_requested_at FROM users WHERE email = ?',
+      [email]
+    );
+    
+    if (!user || !user.password_reset_requested_at) {
+      return true; // No previous request
+    }
+    
+    const twelveMinutesAgo = Date.now() - (12 * 60 * 1000); // 12 minutes in milliseconds (5 requests per hour)
+    return user.password_reset_requested_at < twelveMinutesAgo;
   },
 
   async removeChurchAssignment(userId, churchId) {
