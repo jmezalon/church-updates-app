@@ -103,7 +103,9 @@ export default function EventDetailScreen() {
 
         {/* Church Information */}
         <View style={styles.churchSection}>
-          <Text style={styles.churchName}>{event.church_name}</Text>
+          <TouchableOpacity onPress={() => router.push(`/(tabs)/church/${event.church_id}`)}>
+            <Text style={[styles.churchName, styles.churchNameClickable]}>{event.church_name}</Text>
+          </TouchableOpacity>
           {event.location && (
             <Text style={styles.location}>{event.location}</Text>
           )}
@@ -228,6 +230,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 5,
+  },
+  churchNameClickable: {
+    color: '#3498db',
+    textDecorationLine: 'underline',
   },
   location: {
     fontSize: 16,
