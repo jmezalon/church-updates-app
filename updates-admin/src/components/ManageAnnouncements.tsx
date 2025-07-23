@@ -1,3 +1,4 @@
+import { BASE_URL } from '../constants/config';
 import { useState } from 'react';
 import {
   Box,
@@ -91,7 +92,7 @@ export function ManageAnnouncements({ user, onBack }: ManageAnnouncementsProps) 
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/announcements`, {
+      const response = await fetch(`${BASE_URL}/announcements`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

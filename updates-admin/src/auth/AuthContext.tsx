@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-// Backend API configuration
-const API_BASE_URL = 'http://localhost:3000';
+import { BASE_URL } from '../constants/config';
 
 // User interface matching backend response
 interface User {
@@ -51,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          const response = await fetch(`${API_BASE_URL}/auth/verify-token`, {
+          const response = await fetch(`${BASE_URL}/auth/verify-token`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -86,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/verify-token`, {
+      const response = await fetch(`${BASE_URL}/auth/verify-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

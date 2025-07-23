@@ -17,12 +17,15 @@ import {
   Edit as EditIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 import { Navbar } from './Navbar';
 import { useImageUpload } from '../hooks/useImageUpload';
+import { BASE_URL } from '../constants/config';
 import { EventCard } from './EventCard';
 import { AnnouncementCard } from './AnnouncementCard';
+import { DonationCard, AddDonationDialog } from './DonationCard';
 
 interface Church {
   id: number;
@@ -75,6 +78,17 @@ interface Announcement {
   is_special: boolean;
 }
 
+interface Donation {
+  id: number;
+  church_id: number;
+  method: string;
+  contact_name?: string;
+  contact_info: string;
+  note?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface ChurchDetailsProps {
   churchId: number;
   onBack: () => void;
@@ -84,13 +98,16 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   const [church, setChurch] = useState<Church | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const [donationsLoading, setDonationsLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [addDonationOpen, setAddDonationOpen] = useState(false);
   // Form state
   const [formData, setFormData] = useState<Partial<Church>>({});
 
@@ -103,12 +120,13 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
     loadChurchDetails();
     loadEvents();
     loadAnnouncements();
+    loadDonations();
   }, [churchId]);
 
   const loadChurchDetails = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/churches/${churchId}`, {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
 
@@ -128,7 +146,7 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   const loadEvents = async () => {
     setEventsLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/churches/${churchId}/events`, {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}/events`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
 
@@ -147,7 +165,7 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   const loadAnnouncements = async () => {
     setAnnouncementsLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/announcements?church_id=${churchId}`, {
+      const response = await fetch(`${BASE_URL}/announcements?church_id=${churchId}`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
 
@@ -163,6 +181,25 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
     setAnnouncementsLoading(false);
   };
 
+  const loadDonations = async () => {
+    setDonationsLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}/donations`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      if (response.ok) {
+        const donationsData = await response.json();
+        setDonations(donationsData);
+      } else {
+        console.error('Failed to load donations');
+      }
+    } catch (err) {
+      console.error('Network error while loading donations:', err);
+    }
+    setDonationsLoading(false);
+  };
+
   const handleAnnouncementUpdate = (updatedAnnouncement: Announcement) => {
     setAnnouncements(prev => 
       prev.map(announcement => 
@@ -173,6 +210,73 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
 
   const handleAnnouncementDelete = (announcementId: number) => {
     setAnnouncements(prev => prev.filter(announcement => announcement.id !== announcementId));
+  };
+
+  const handleDonationDelete = async (donationId: number) => {
+    try {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}/donations/${donationId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+
+      if (response.ok) {
+        setDonations(prev => prev.filter(donation => donation.id !== donationId));
+      } else {
+        console.error('Failed to delete donation');
+      }
+    } catch (err) {
+      console.error('Network error while deleting donation:', err);
+    }
+  };
+
+  const handleDonationAdd = async (donationData: Partial<Donation>) => {
+    try {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}/donations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(donationData)
+      });
+
+      if (response.ok) {
+        const newDonation = await response.json();
+        setDonations(prev => [...prev, newDonation]);
+      } else {
+        throw new Error('Failed to add donation');
+      }
+    } catch (err) {
+      console.error('Network error while adding donation:', err);
+      throw err;
+    }
+  };
+
+  const handleDonationUpdate = async (updatedDonation: Donation) => {
+    try {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}/donations/${updatedDonation.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(updatedDonation)
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setDonations(prev => 
+          prev.map(donation => 
+            donation.id === updated.id ? updated : donation
+          )
+        );
+      } else {
+        throw new Error('Failed to update donation');
+      }
+    } catch (err) {
+      console.error('Network error while updating donation:', err);
+      throw err;
+    }
   };
 
   const handleEdit = () => {
@@ -193,7 +297,7 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
     setError('');
     
     try {
-      const response = await fetch(`http://localhost:3000/churches/${churchId}`, {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -307,49 +411,50 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
   }
 
   return (
-    <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Navbar />
-      <Box sx={{ pt: 10, width: '100%' }}>
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          {/* Header */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-            <IconButton onClick={onBack} sx={{ mr: 2 }}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main', flexGrow: 1 }}>
-              {church.name}
-            </Typography>
-            {!editing ? (
-              <Button
-                variant="contained"
-                startIcon={<EditIcon />}
-                onClick={handleEdit}
-                sx={{ ml: 2 }}
-              >
-                Edit Details
-              </Button>
-            ) : (
-              <Box sx={{ display: 'flex', gap: 1 }}>
+    <>
+      <Box sx={{ width: '100vw', minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Navbar />
+        <Box sx={{ pt: 10, width: '100%' }}>
+          <Container maxWidth="lg" sx={{ py: 4 }}>
+            {/* Header */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+              <IconButton onClick={onBack} sx={{ mr: 2 }}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: 'secondary.main', flexGrow: 1 }}>
+                {church.name}
+              </Typography>
+              {!editing ? (
                 <Button
                   variant="contained"
-                  color="success"
-                  startIcon={<SaveIcon />}
-                  onClick={handleSave}
-                  disabled={saving}
+                  startIcon={<EditIcon />}
+                  onClick={handleEdit}
+                  sx={{ ml: 2 }}
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                  Edit Details
                 </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<CancelIcon />}
-                  onClick={handleCancel}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-              </Box>
-            )}
-          </Box>
+              ) : (
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<CancelIcon />}
+                    onClick={handleCancel}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              )}
+            </Box>
 
           {/* Alerts */}
           {(error || imageUpload.error) && (
@@ -651,6 +756,57 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
             </CardContent>
           </Card>
 
+          {/* Donations Management Section */}
+          <Card sx={{ mb: 4 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: 'success.main' }}>
+                  💰 Donations
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {donations.length} payment method{donations.length !== 1 ? 's' : ''} available
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={() => setAddDonationOpen(true)}
+                    sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+                  >
+                    Add Method
+                  </Button>
+                </Box>
+              </Box>
+
+              {donationsLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <Typography>Loading donation methods...</Typography>
+                </Box>
+              ) : donations.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
+                    No donation methods set up yet.
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Add payment methods like Cash App, Zelle, or others to help members donate easily.
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {donations.map((donation) => (
+                    <DonationCard
+                      key={donation.id}
+                      donation={donation}
+                      onDelete={handleDonationDelete}
+                      onUpdate={handleDonationUpdate}
+                    />
+                  ))}
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Events and Announcements Grid Layout */}
           <Box sx={{ 
             display: 'grid', 
@@ -734,8 +890,17 @@ export function ChurchDetails({ churchId, onBack }: ChurchDetailsProps) {
               </CardContent>
             </Card>
           </Box>
-        </Container>
+          </Container>
+        </Box>
       </Box>
-    </Box>
+
+      {/* Add Donation Dialog */}
+      <AddDonationDialog
+        open={addDonationOpen}
+        onClose={() => setAddDonationOpen(false)}
+        onAdd={handleDonationAdd}
+        churchId={churchId}
+      />
+    </>
   );
 }

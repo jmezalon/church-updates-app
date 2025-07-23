@@ -1,7 +1,7 @@
-import React from 'react';
 import { Box, Container, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
 import homepageImage from '../assets/homepageview.png';
 import eventpageImage from '../assets/eventpage.png';
 
@@ -152,6 +152,7 @@ export function Landing() {
           </Container>
         </Box>
       </Box>
+      <Footer />
     </Box>
   );
 }

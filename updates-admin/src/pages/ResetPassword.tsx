@@ -1,3 +1,4 @@
+import { BASE_URL } from '../constants/config';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -47,7 +48,7 @@ export function ResetPassword() {
 
   const verifyToken = async (resetToken: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/auth/verify-reset-token?token=${resetToken}`);
+      const response = await fetch(`${BASE_URL}/auth/verify-reset-token?token=${resetToken}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -85,7 +86,7 @@ export function ResetPassword() {
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:3000/auth/reset-password', {
+      const response = await fetch('${BASE_URL}/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

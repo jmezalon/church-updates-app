@@ -1,3 +1,4 @@
+import { BASE_URL } from '../constants/config';
 import { useState } from 'react';
 import {
   Box,
@@ -138,7 +139,7 @@ export function ManageEvents({ onBack, onEventCreated }: ManageEventsProps) {
     setSuccess('');
 
     try {
-      const response = await fetch(`http://localhost:3000/churches/${churchId}/events`, {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}/events`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

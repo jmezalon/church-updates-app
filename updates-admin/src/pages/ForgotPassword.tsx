@@ -32,7 +32,7 @@ export function ForgotPassword() {
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:3000/auth/forgot-password', {
+      const response = await fetch('${BASE_URL}/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

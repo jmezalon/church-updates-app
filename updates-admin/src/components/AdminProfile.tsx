@@ -1,3 +1,4 @@
+import { BASE_URL } from '../constants/config';
 import { useState } from 'react';
 import { 
   Box, 
@@ -69,7 +70,7 @@ export function AdminProfile({ onBack }: AdminProfileProps) {
     setError('');
     
     try {
-      const response = await fetch(`http://localhost:3000/users/${user?.id}`, {
+      const response = await fetch(`${BASE_URL}/users/${user?.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ export function AdminProfile({ onBack }: AdminProfileProps) {
     setLoading(true);
     
     try {
-      const response = await fetch(`http://localhost:3000/auth/change-password`, {
+      const response = await fetch(`${BASE_URL}/auth/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export function AdminProfile({ onBack }: AdminProfileProps) {
     setError('');
     
     try {
-      const response = await fetch(`http://localhost:3000/users/${user?.id}`, {
+      const response = await fetch(`${BASE_URL}/users/${user?.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}`

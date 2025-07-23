@@ -22,20 +22,16 @@ app.use(express.json());
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads'));
 
-// Authentication routes
-app.use('/auth', authRouter);
-app.use('/users', usersRouter);
-app.use('/enrollment', enrollmentRoutes);
-
-// Existing routes
-app.use('/churches', churchesRouter);
-app.use('/churches/:churchId/events', eventsRouter);
-app.use('/events', globalEventsRouter);
-app.use('/churches/:churchId/donations', donationsRouter);
-app.use('/announcements', announcementsRouter);
-
-// Upload routes
-app.use('/upload', uploadRoutes);
+// API routes - all routes under /api prefix
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/enrollment', enrollmentRoutes);
+app.use('/api/churches', churchesRouter);
+app.use('/api/churches/:churchId/events', eventsRouter);
+app.use('/api/events', globalEventsRouter);
+app.use('/api/churches/:churchId/donations', donationsRouter);
+app.use('/api/announcements', announcementsRouter);
+app.use('/api/upload', uploadRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

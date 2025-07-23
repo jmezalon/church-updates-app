@@ -36,13 +36,15 @@ export const validateImageFile = (
   return { isValid: true };
 };
 
+import { BASE_URL } from '../constants/config';
+
 /**
  * Uploads an image file to the server
  */
 export const uploadImageFile = async (
   file: File,
   authToken: string,
-  endpoint: string = 'http://localhost:3000/upload/image'
+  endpoint: string = `${BASE_URL}/upload/image`
 ): Promise<ImageUploadResult> => {
   try {
     const formData = new FormData();

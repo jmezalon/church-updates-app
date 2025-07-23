@@ -1,3 +1,4 @@
+import { BASE_URL } from '../constants/config';
 import { useState } from 'react';
 import {
   Box,
@@ -142,7 +143,7 @@ export function AnnouncementCard({ announcement, authToken, onUpdate, onDelete }
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:3000/announcements/${announcement.id}`, {
+      const response = await fetch(`${BASE_URL}/announcements/${announcement.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +172,7 @@ export function AnnouncementCard({ announcement, authToken, onUpdate, onDelete }
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/announcements/${announcement.id}`, {
+      const response = await fetch(`${BASE_URL}/announcements/${announcement.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}`

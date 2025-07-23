@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import { Box, Container, Typography, Button, Card, CardContent } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
 import { ChurchEnrollment } from '../components/ChurchEnrollment';
 import { SuperuserDashboard } from '../components/SuperuserDashboard';
 import { ChurchDetails } from '../components/ChurchDetails';
 import { AdminProfile } from '../components/AdminProfile';
 import { ManageEvents } from '../components/ManageEvents';
 import { ManageAnnouncements } from '../components/ManageAnnouncements';
+import { BASE_URL } from '../constants/config';
 import { useAuth } from '../auth/AuthContext';
 
 export function Dashboard() {
@@ -47,7 +49,7 @@ export function Dashboard() {
     
     try {
       // Load events count
-      const eventsResponse = await fetch(`http://localhost:3000/churches/${churchId}/events`, {
+      const eventsResponse = await fetch(`${BASE_URL}/churches/${churchId}/events`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       
@@ -57,7 +59,7 @@ export function Dashboard() {
       }
       
       // Load announcements count
-      const announcementsResponse = await fetch(`http://localhost:3000/announcements?church_id=${churchId}`, {
+      const announcementsResponse = await fetch(`${BASE_URL}/announcements?church_id=${churchId}`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       
@@ -210,7 +212,7 @@ export function Dashboard() {
       <Box sx={{ pt: 10, width: '100%' }}>
         <Container maxWidth="lg" sx={{ py: 8 }}>
           <Typography variant="h2" sx={{ fontWeight: 900, color: 'secondary.main', mb: 2, textAlign: 'center' }}>
-            Welcome to Your Dashboard, {user?.name}!
+            Welcome to Your Dashboard, {user?.name.split(' ')[0]}!
           </Typography>
           <Typography 
             variant="h5" 
@@ -296,6 +298,7 @@ export function Dashboard() {
           </Card>
         </Container>
       </Box>
+      <Footer />
     </Box>
   );
 }

@@ -24,6 +24,16 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+// PUT /churches/:churchId/donations/:donationId
+router.put('/:donationId', async (req, res, next) => {
+  try {
+    const updated = await Donations.update(req.params.donationId, req.body);
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // DELETE /churches/:churchId/donations/:donationId
 router.delete('/:donationId', async (req, res, next) => {
   try {

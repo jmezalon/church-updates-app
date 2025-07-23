@@ -1,3 +1,4 @@
+import { BASE_URL } from '../constants/config';
 import { useState } from 'react';
 import {
   Box,
@@ -77,7 +78,7 @@ export function EventCard({ event, onUpdate }: EventCardProps) {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const response = await fetch(`http://localhost:3000/churches/${event.church_id}/events/${event.id}`, {
+      const response = await fetch(`${BASE_URL}/churches/${event.church_id}/events/${event.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
@@ -98,7 +99,7 @@ export function EventCard({ event, onUpdate }: EventCardProps) {
     setUpdating(true);
     clearMessages();
     try {
-      const response = await fetch(`http://localhost:3000/churches/${event.church_id}/events/${event.id}`, {
+      const response = await fetch(`${BASE_URL}/churches/${event.church_id}/events/${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

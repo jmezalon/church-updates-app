@@ -1,3 +1,4 @@
+import { BASE_URL } from '../constants/config';
 import { useState, useEffect } from 'react';
 import { 
   Box, 
@@ -109,7 +110,7 @@ export function SuperuserDashboard() {
     setLoading(true);
     try {
       // Load users
-      const usersResponse = await fetch('http://localhost:3000/users', {
+      const usersResponse = await fetch('${BASE_URL}/users', {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (usersResponse.ok) {
@@ -118,7 +119,7 @@ export function SuperuserDashboard() {
       }
 
       // Load churches
-      const churchesResponse = await fetch('http://localhost:3000/churches', {
+      const churchesResponse = await fetch('${BASE_URL}/churches', {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (churchesResponse.ok) {
@@ -139,7 +140,7 @@ export function SuperuserDashboard() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/auth/register', {
+      const response = await fetch('${BASE_URL}/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +180,7 @@ export function SuperuserDashboard() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/users/${selectedUserId}/assign-church`, {
+      const response = await fetch(`${BASE_URL}/users/${selectedUserId}/assign-church`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -211,7 +212,7 @@ export function SuperuserDashboard() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/users/${userId}`, {
+      const response = await fetch(`${BASE_URL}/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
@@ -235,7 +236,7 @@ export function SuperuserDashboard() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/churches/${churchId}`, {
+      const response = await fetch(`${BASE_URL}/churches/${churchId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${authToken}` }
       });

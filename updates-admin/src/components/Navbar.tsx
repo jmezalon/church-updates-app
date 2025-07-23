@@ -1,5 +1,4 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Avatar, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
@@ -28,23 +27,29 @@ export function Navbar() {
         </Typography>
         {isLoggedIn ? (
           <>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: 'text.primary', 
-                mr: 2,
-                cursor: 'pointer',
-                '&:hover': {
-                  color: 'error.main'
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar 
+                sx={{ 
+                  width: 40, 
+                  height: 40, 
+                  bgcolor: 'white',
+                  color: 'primary.main',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    bgcolor: 'primary.dark'
+                  }
+                }}
+                onClick={() => navigate('/profile')}
+              >
+                {user?.name ? 
+                  user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                  'U'
                 }
-              }}
-              onClick={() => navigate('/profile')}
-            >
-              Welcome, {user?.name}
-            </Typography>
-            <Button color="inherit" onClick={logout} sx={{ color: 'error.main', fontWeight: 600 }}>
-              Logout
-            </Button>
+              </Avatar>
+              <Button color="inherit" onClick={logout} sx={{ color: 'error.main', fontWeight: 600 }}>
+                Logout
+              </Button>
+            </Box>
           </>
         ) : (
           <>

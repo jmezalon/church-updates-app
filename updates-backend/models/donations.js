@@ -24,6 +24,21 @@ const Donations = {
     return inserted;
   },
 
+  async update(id, data) {
+    const db = getDb();
+    const { method, contact_name, contact_info, note } = data;
+    await db.run(
+      `UPDATE donations 
+       SET method = ?, contact_name = ?, contact_info = ?, note = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [method, contact_name, contact_info, note, id]
+    );
+    
+    // Get the updated record
+    const updated = await db.get('SELECT * FROM donations WHERE id = ?', [id]);
+    return updated;
+  },
+
   async remove(id) {
     const db = getDb();
     await db.run('DELETE FROM donations WHERE id = ?', [id]);
