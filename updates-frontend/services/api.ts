@@ -19,6 +19,7 @@ export interface Church {
   logo_url?: string;
   banner_url?: string;
   description?: string;
+  follower_count?: number;
 }
 
 export interface Announcement {
@@ -53,6 +54,7 @@ export interface Event {
   contact_phone?: string;
   website?: string;
   favorites_count?: number;
+  like_count?: number;
   church_name?: string;
   church_logo?: string;
 }

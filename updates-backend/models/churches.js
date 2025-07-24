@@ -8,7 +8,14 @@ module.exports = {
   },
   async getById(id) {
     const db = getDb();
-    const row = await db.get('SELECT * FROM churches WHERE id = ?', [id]);
+    const row = await db.get(
+      `SELECT c.*, COUNT(ucf.id) as follower_count
+       FROM churches c 
+       LEFT JOIN user_church_follows ucf ON c.id = ucf.church_id
+       WHERE c.id = ?
+       GROUP BY c.id`, 
+      [id]
+    );
     return row;
   },
   async create(data) {

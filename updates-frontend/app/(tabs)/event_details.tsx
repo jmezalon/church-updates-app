@@ -162,13 +162,6 @@ export default function EventDetailScreen() {
           </View>
         )}
 
-        {/* Favorites */}
-        {event.favorites_count !== undefined && (
-          <View style={styles.favoritesSection}>
-            <Text style={styles.favoritesText}>{event.favorites_count} Favorites</Text>
-          </View>
-        )}
-
         {/* Description */}
         {event.description && (
           <View style={styles.descriptionSection}>
@@ -313,16 +306,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#3498db',
     textDecorationLine: 'underline',
-  },
-  favoritesSection: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  favoritesText: {
-    fontSize: 16,
-    color: '#666',
   },
   descriptionSection: {
     paddingHorizontal: 16,

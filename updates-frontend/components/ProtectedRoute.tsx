@@ -60,12 +60,21 @@ export default function ProtectedRoute({
             Admin accounts should use the web portal. Please visit the admin portal in your browser.
           </Text>
           
-          <TouchableOpacity
-            style={styles.signInButton}
-            onPress={() => router.replace('/(tabs)' as any)}
-          >
-            <Text style={styles.signInButtonText}>Back to Home</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.signInButton}
+              onPress={() => router.replace('/(tabs)' as any)}
+            >
+              <Text style={styles.signInButtonText}>Back to Home</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.signUpButton}
+              onPress={() => router.push('/auth/login' as any)}
+            >
+              <Text style={styles.signUpButtonText}>Sign In as Different User</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );

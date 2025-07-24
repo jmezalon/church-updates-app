@@ -4,9 +4,12 @@ module.exports = {
   async getAll() {
     const db = getDb();
     const rows = await db.all(
-      `SELECT e.*, c.name as church_name, c.logo_url as church_logo 
+      `SELECT e.*, c.name as church_name, c.logo_url as church_logo,
+              COUNT(uel.id) as like_count
        FROM events e 
        JOIN churches c ON e.church_id = c.id 
+       LEFT JOIN user_event_likes uel ON e.id = uel.event_id
+       GROUP BY e.id, c.id
        ORDER BY e.start_datetime ASC`
     );
     return rows;

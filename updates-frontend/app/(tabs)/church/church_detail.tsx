@@ -164,11 +164,15 @@ export default function ChurchScreen() {
             <Text style={styles.location}>
               {[church.address, church.city, church.state].filter(Boolean).join(', ')}
             </Text>
+            <View style={styles.followerContainer}>
+              <Text style={styles.followerCount}>{(church.follower_count || 0)} followers</Text>
+            </View>
           </View>
           <FollowButton 
             churchId={parseInt(id)} 
             churchName={church.name}
             style={styles.followButton}
+            onFollowChange={() => loadChurchData()}
           />
         </View>
 
@@ -874,5 +878,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     lineHeight: 24,
+  },
+  followerContainer: {
+    marginTop: 4,
+  },
+  followerCount: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
 });
