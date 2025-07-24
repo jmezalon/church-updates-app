@@ -6,10 +6,12 @@ const router = express.Router();
 // GET /announcements - Get all announcements (for landing page)
 router.get('/', async (req, res, next) => {
   try {
-    const { type, special, church_id } = req.query;
+    const { type, special, church_id, weekly } = req.query;
     
     let announcements;
-    if (type) {
+    if (weekly === 'true' && church_id) {
+      announcements = await Announcements.findWeeklyByChurch(church_id);
+    } else if (type) {
       announcements = await Announcements.findByType(type);
     } else if (special === 'true') {
       announcements = await Announcements.findSpecial();

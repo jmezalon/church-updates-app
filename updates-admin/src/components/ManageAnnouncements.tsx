@@ -52,7 +52,8 @@ export function ManageAnnouncements({ user, onBack }: ManageAnnouncementsProps) 
     end_time: '',
     recurrence_rule: '',
     is_special: false,
-    posted_at: new Date().toISOString().slice(0, 16)
+    posted_at: new Date().toISOString().slice(0, 16),
+    day: 0 // Default to Sunday
   });
   
   const [createAnother, setCreateAnother] = useState(false);
@@ -116,7 +117,8 @@ export function ManageAnnouncements({ user, onBack }: ManageAnnouncementsProps) 
             end_time: '',
             recurrence_rule: '',
             is_special: false,
-            posted_at: new Date().toISOString().slice(0, 16)
+            posted_at: new Date().toISOString().slice(0, 16),
+            day: 0 // Default to Sunday
           });
         } else {
           // Navigate back to church details after a short delay
@@ -293,6 +295,26 @@ export function ManageAnnouncements({ user, onBack }: ManageAnnouncementsProps) 
                   />
                 </Box>
 
+                {/* Day Selector for Weekly Announcements */}
+                {formData.type === 'weekly' && (
+                  <FormControl fullWidth>
+                    <InputLabel>Day of Week</InputLabel>
+                    <Select
+                      value={formData.day}
+                      label="Day of Week"
+                      onChange={(e) => setFormData(prev => ({ ...prev, day: Number(e.target.value) }))}
+                    >
+                      <MenuItem value={0}>Sunday</MenuItem>
+                      <MenuItem value={1}>Monday</MenuItem>
+                      <MenuItem value={2}>Tuesday</MenuItem>
+                      <MenuItem value={3}>Wednesday</MenuItem>
+                      <MenuItem value={4}>Thursday</MenuItem>
+                      <MenuItem value={5}>Friday</MenuItem>
+                      <MenuItem value={6}>Saturday</MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
+
                 {/* Special Announcement Checkbox */}
                 <FormControlLabel
                   control={
@@ -318,7 +340,6 @@ export function ManageAnnouncements({ user, onBack }: ManageAnnouncementsProps) 
                   required
                   value={formatDateTimeForInput(formData.posted_at)}
                   onChange={(e) => setFormData(prev => ({ ...prev, posted_at: e.target.value }))}
-                  InputLabelProps={{ shrink: true }}
                   helperText="When this announcement should be published"
                 />
 

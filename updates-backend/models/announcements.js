@@ -24,6 +24,22 @@ const Announcements = {
     return rows;
   },
 
+  async findWeeklyByChurch(churchId) {
+    const db = getDb();
+    const rows = await db.all(`
+      SELECT a.*, c.name as church_name, c.logo_url as church_logo 
+      FROM announcements a 
+      JOIN churches c ON a.church_id = c.id 
+      WHERE a.church_id = ? 
+        AND (a.type = 'weekly' OR (a.is_special = 0 AND a.recurrence_rule IS NOT NULL))
+      ORDER BY 
+        CASE WHEN a.day IS NULL THEN 1 ELSE 0 END,
+        a.day ASC,
+        a.start_time ASC
+    `, [churchId]);
+    return rows;
+  },
+
   async findByType(type) {
     const db = getDb();
     const rows = await db.all(`
@@ -61,11 +77,11 @@ const Announcements = {
 
   async create(churchId, data) {
     const db = getDb();
-    const { title, description, image_url, posted_at, type, subcategory, start_time, end_time, recurrence_rule, is_special } = data;
+    const { title, description, image_url, posted_at, type, subcategory, start_time, end_time, recurrence_rule, is_special, day } = data;
     const result = await db.run(`
-      INSERT INTO announcements (church_id, title, description, image_url, posted_at, type, subcategory, start_time, end_time, recurrence_rule, is_special)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [churchId, title, description, image_url, posted_at, type, subcategory, start_time, end_time, recurrence_rule, is_special]);
+      INSERT INTO announcements (church_id, title, description, image_url, posted_at, type, subcategory, start_time, end_time, recurrence_rule, is_special, day)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [churchId, title, description, image_url, posted_at, type, subcategory, start_time, end_time, recurrence_rule, is_special, day]);
     
     // Get the inserted record with church info
     const inserted = await this.findById(result.lastID);

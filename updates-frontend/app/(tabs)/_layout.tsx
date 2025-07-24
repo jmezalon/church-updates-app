@@ -25,7 +25,7 @@ export default function TabLayout() {
     e.preventDefault();
     
     // Navigate based on current screen
-    if (pathname.includes('/church/')) {
+    if (pathname.includes('/church/church_detail')) {
       router.push('/(tabs)/event_details' as any);
     } else if (pathname.includes('/event_details')) {
       router.push('/(tabs)' as any);
@@ -95,7 +95,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="church/[id]"
+        name="church/church_detail"
         options={{
           href: null, // Hide from tab bar
         }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,12 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { apiService, Church } from '@/services/api';
 
 export default function SearchScreen() {
   const router = useRouter();
+  const searchInputRef = useRef<TextInput>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [churches, setChurches] = useState<Church[]>([]);
   const [filteredChurches, setFilteredChurches] = useState<Church[]>([]);
@@ -26,6 +27,18 @@ export default function SearchScreen() {
   useEffect(() => {
     filterChurches();
   }, [searchQuery, churches]);
+
+  // Auto-focus search input when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Small delay to ensure the screen is fully rendered
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }, [])
+  );
 
   const loadChurches = async () => {
     try {
@@ -56,7 +69,7 @@ export default function SearchScreen() {
   const handleChurchPress = (churchId: number) => {
     // Clear the search field when navigating to church
     setSearchQuery('');
-    router.push(`/(tabs)/church/${churchId}`);
+    router.push(`/(tabs)/church/church_detail?id=${churchId}`);
   };
 
   const renderChurchItem = ({ item }: { item: Church }) => (
@@ -89,6 +102,7 @@ export default function SearchScreen() {
       
       <View style={styles.searchContainer}>
         <TextInput
+          ref={searchInputRef}
           style={styles.searchInput}
           placeholder="Search for churches..."
           value={searchQuery}

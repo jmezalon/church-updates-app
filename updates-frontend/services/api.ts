@@ -36,6 +36,7 @@ export interface Announcement {
   is_special: boolean;
   church_name?: string;
   church_logo?: string;
+  day?: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
 }
 
 export interface Event {
@@ -103,6 +104,10 @@ class ApiService {
 
   async getAnnouncementsByChurch(churchId: number): Promise<Announcement[]> {
     return this.fetchApi<Announcement[]>(`/announcements?church_id=${churchId}`);
+  }
+
+  async getWeeklyAnnouncementsByChurch(churchId: number): Promise<Announcement[]> {
+    return this.fetchApi<Announcement[]>(`/announcements?church_id=${churchId}&weekly=true`);
   }
 
   // Events

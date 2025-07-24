@@ -46,6 +46,7 @@ interface Announcement {
   end_time?: string;
   recurrence_rule?: string;
   is_special: boolean;
+  day?: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
 }
 
 interface AnnouncementCardProps {
@@ -72,7 +73,8 @@ export function AnnouncementCard({ announcement, authToken, onUpdate, onDelete }
     start_time: announcement.start_time || '',
     end_time: announcement.end_time || '',
     recurrence_rule: announcement.recurrence_rule || '',
-    is_special: announcement.is_special
+    is_special: announcement.is_special,
+    day: announcement.day ?? 0 // Default to Sunday if not set
   });
 
   const imageUpload = useImageUpload(authToken);
@@ -110,6 +112,12 @@ export function AnnouncementCard({ announcement, authToken, onUpdate, onDelete }
     }
   };
 
+  const getDayName = (day?: number) => {
+    if (day === undefined || day === null) return null;
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[day] || null;
+  };
+
   const handleEdit = () => {
     setIsEditing(true);
     setError('');
@@ -127,7 +135,8 @@ export function AnnouncementCard({ announcement, authToken, onUpdate, onDelete }
       start_time: announcement.start_time || '',
       end_time: announcement.end_time || '',
       recurrence_rule: announcement.recurrence_rule || '',
-      is_special: announcement.is_special
+      is_special: announcement.is_special,
+      day: announcement.day ?? 0 // Default to Sunday if not set
     });
     setError('');
     setSuccess('');
@@ -243,6 +252,26 @@ export function AnnouncementCard({ announcement, authToken, onUpdate, onDelete }
                 <MenuItem value="yearly">Yearly</MenuItem>
               </Select>
             </FormControl>
+
+            {/* Day Selector for Weekly Announcements */}
+            {editForm.type === 'weekly' && (
+              <FormControl fullWidth>
+                <InputLabel>Day of Week</InputLabel>
+                <Select
+                  value={editForm.day}
+                  label="Day of Week"
+                  onChange={(e) => setEditForm(prev => ({ ...prev, day: Number(e.target.value) }))}
+                >
+                  <MenuItem value={0}>Sunday</MenuItem>
+                  <MenuItem value={1}>Monday</MenuItem>
+                  <MenuItem value={2}>Tuesday</MenuItem>
+                  <MenuItem value={3}>Wednesday</MenuItem>
+                  <MenuItem value={4}>Thursday</MenuItem>
+                  <MenuItem value={5}>Friday</MenuItem>
+                  <MenuItem value={6}>Saturday</MenuItem>
+                </Select>
+              </FormControl>
+            )}
 
             <TextField
               label="Subcategory"
@@ -383,6 +412,14 @@ export function AnnouncementCard({ announcement, authToken, onUpdate, onDelete }
               color={getTypeColor(announcement.type) as any}
               size="small"
             />
+            {announcement.type === 'weekly' && getDayName(announcement.day) && (
+              <Chip 
+                label={getDayName(announcement.day)} 
+                color="primary" 
+                variant="outlined" 
+                size="small" 
+              />
+            )}
             {announcement.is_special ? (
               <Chip label="Special" color="error" size="small" />
             ) : null}

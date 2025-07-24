@@ -103,7 +103,7 @@ export default function EventDetailScreen() {
 
         {/* Church Information */}
         <View style={styles.churchSection}>
-          <TouchableOpacity onPress={() => router.push(`/(tabs)/church/${event.church_id}`)}>
+          <TouchableOpacity onPress={() => router.push(`/(tabs)/church/church_detail?id=${event.church_id}`)}>
             <Text style={[styles.churchName, styles.churchNameClickable]}>{event.church_name}</Text>
           </TouchableOpacity>
           {event.location && (
