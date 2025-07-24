@@ -86,7 +86,7 @@ export function ResetPassword() {
     setSuccess('');
 
     try {
-      const response = await fetch('${BASE_URL}/auth/reset-password', {
+      const response = await fetch(`${BASE_URL}/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

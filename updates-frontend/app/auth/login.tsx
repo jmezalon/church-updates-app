@@ -28,6 +28,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAdminRedirect, setShowAdminRedirect] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -38,11 +39,11 @@ export default function LoginScreen() {
 
   const validateForm = () => {
     if (!formData.email.trim()) {
-      Alert.alert('Error', 'Email is required');
+      setError('Email is required');
       return false;
     }
     if (!formData.password.trim()) {
-      Alert.alert('Error', 'Password is required');
+      setError('Password is required');
       return false;
     }
     return true;
@@ -66,25 +67,9 @@ export default function LoginScreen() {
         
         // Check user role and redirect accordingly
         if (result.user.role === 'church_admin' || result.user.role === 'superuser') {
-          // Redirect admin users to web portal
-          Alert.alert(
-            'Admin Account Detected',
-            'You will be redirected to the admin portal in your browser.',
-            [
-              {
-                text: 'Open Admin Portal',
-                onPress: () => {
-                  Linking.openURL(ADMIN_PORTAL_URL);
-                  // Clear the form but don't navigate away
-                  setFormData({ email: '', password: '' });
-                },
-              },
-              {
-                text: 'Cancel',
-                style: 'cancel',
-              },
-            ]
-          );
+          // Show admin redirect UI
+          setShowAdminRedirect(true);
+          setFormData({ email: '', password: '' });
         } else {
           // Regular users continue to the app - redirect to favorites
           console.log('✅ Regular user login successful, routing to favorites...');
@@ -95,17 +80,11 @@ export default function LoginScreen() {
         console.log('❌ Login failed:', errorMessage);
         setError(errorMessage);
         console.log('🔴 Error state set to:', errorMessage);
-        // Also show alert for immediate feedback
-        Alert.alert('Login Failed', errorMessage);
       }
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Network connection failed';
-      setError(`Network Error: ${errorMessage}`);
-      Alert.alert(
-        'Network Error', 
-        `Unable to connect to server. Please check your connection.\n\nError: ${errorMessage}`
-      );
+      setError(`Network Error: Unable to connect to server. Please check your connection. ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -136,6 +115,35 @@ export default function LoginScreen() {
           {error && (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+          
+          {showAdminRedirect && (
+            <View style={styles.adminRedirectContainer}>
+              <View style={styles.adminRedirectContent}>
+                <Ionicons name="shield-checkmark" size={48} color="#4CAF50" style={styles.adminIcon} />
+                <Text style={styles.adminRedirectTitle}>Admin Account Detected</Text>
+                <Text style={styles.adminRedirectMessage}>
+                  You will be redirected to the admin portal in your browser to manage your church.
+                </Text>
+                <View style={styles.adminButtonContainer}>
+                  <TouchableOpacity
+                    style={styles.openPortalButton}
+                    onPress={() => {
+                      Linking.openURL(ADMIN_PORTAL_URL);
+                      setShowAdminRedirect(false);
+                    }}
+                  >
+                    <Text style={styles.openPortalButtonText}>Open Admin Portal</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setShowAdminRedirect(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           )}
           
@@ -192,11 +200,7 @@ export default function LoginScreen() {
           <TouchableOpacity 
             style={styles.forgotPassword}
             onPress={() => {
-              Alert.alert(
-                'Forgot Password',
-                'Please contact support or use the admin portal to reset your password.',
-                [{ text: 'OK' }]
-              );
+              setError('Please contact support or use the admin portal to reset your password.');
             }}
           >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
@@ -339,5 +343,78 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#007AFF',
     fontWeight: '600',
+  },
+  adminRedirectContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  adminRedirectContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    margin: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  adminIcon: {
+    marginBottom: 16,
+  },
+  adminRedirectTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  adminRedirectMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  adminButtonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  openPortalButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+  openPortalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

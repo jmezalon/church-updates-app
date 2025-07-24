@@ -12,6 +12,7 @@ import {
   Stack
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Email as EmailIcon } from '@mui/icons-material';
+import { BASE_URL } from '../constants/config';
 
 export function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -32,7 +33,7 @@ export function ForgotPassword() {
     setSuccess('');
 
     try {
-      const response = await fetch('${BASE_URL}/auth/forgot-password', {
+      const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

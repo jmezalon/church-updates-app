@@ -110,7 +110,7 @@ export function SuperuserDashboard() {
     setLoading(true);
     try {
       // Load users
-      const usersResponse = await fetch('${BASE_URL}/users', {
+      const usersResponse = await fetch(`${BASE_URL}/users`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (usersResponse.ok) {
@@ -119,7 +119,7 @@ export function SuperuserDashboard() {
       }
 
       // Load churches
-      const churchesResponse = await fetch('${BASE_URL}/churches', {
+      const churchesResponse = await fetch(`${BASE_URL}/churches`, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (churchesResponse.ok) {
@@ -140,7 +140,7 @@ export function SuperuserDashboard() {
 
     setLoading(true);
     try {
-      const response = await fetch('${BASE_URL}/auth/register', {
+      const response = await fetch(`${BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
