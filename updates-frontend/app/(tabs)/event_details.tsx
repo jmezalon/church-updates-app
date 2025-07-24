@@ -93,13 +93,14 @@ export default function EventDetailScreen() {
         <Text style={styles.headerTitle}>Event</Text>
       </View>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
-        {/* Event Title */}
-        <Text style={styles.eventTitle}>{event.title}</Text>
 
         {/* Event Image */}
         {event.image_url && (
           <Image source={{ uri: event.image_url }} style={styles.eventImage} />
         )}
+
+        {/* Event Title */}
+        <Text style={styles.eventTitle}>{event.title}</Text>
 
         {/* Church Information */}
         <View style={styles.churchSection}>
@@ -171,21 +172,21 @@ export default function EventDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-      },
-      header: {
-        backgroundColor: '#FFB800',
-        paddingTop: 60,
-        paddingBottom: 20,
-        paddingHorizontal: 20,
-      },
-      headerTitle: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#000',
-      },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    backgroundColor: '#FFB800',
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#000',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
   },
   eventImage: {
     width: '100%',
-    height: 170,
+    height: 400,
     resizeMode: 'cover',
     marginBottom: 8,
   },
