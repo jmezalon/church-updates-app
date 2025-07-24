@@ -62,7 +62,6 @@ export default function HomeScreen() {
     router.push({ pathname: '/(tabs)/event_details', params: { id: eventId.toString() } });
   };
 
-
   const renderEventCard = (event: Event) => (
     <View key={event.id} style={styles.card}>
       {event.image_url && (
@@ -74,15 +73,19 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{event.title}</Text>
+        <TouchableOpacity onPress={() => handleEventPress(event.id)}>
+          <Text style={styles.cardTitle}>{event.title}</Text>
+        </TouchableOpacity>
         {event.start_datetime && (
           <View style={styles.dateTimeContainer}>
-            {event.church_logo && (
-              <Image
+            <TouchableOpacity onPress={() => router.push(`/(tabs)/church/church_detail?id=${event.church_id}`)}>
+              {event.church_logo && (
+                <Image
                 source={{ uri: event.church_logo }}
                 style={styles.churchLogoCircle}
-              />
-            )}
+                />
+              )}
+            </TouchableOpacity>
             <View style={styles.dateTextContainer}>
               <Text style={styles.dateText}>
                 {formatDate(event.start_datetime)} @ {formatTime(event.start_datetime)}
@@ -92,7 +95,9 @@ export default function HomeScreen() {
         )}
         {event.church_name && (
           <View style={styles.churchContainer}>
-            <Text style={styles.churchName}>{event.church_name}</Text>
+            <TouchableOpacity onPress={() => router.push(`/(tabs)/church/church_detail?id=${event.church_id}`)}>
+              <Text style={styles.churchName}>{event.church_name}</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
