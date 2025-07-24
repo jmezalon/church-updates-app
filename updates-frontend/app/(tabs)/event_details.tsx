@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { apiService, Event } from '@/services/api';
+import LikeButton from '@/components/LikeButton';
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -99,8 +100,16 @@ export default function EventDetailScreen() {
           <Image source={{ uri: event.image_url }} style={styles.eventImage} />
         )}
 
-        {/* Event Title */}
-        <Text style={styles.eventTitle}>{event.title}</Text>
+        {/* Event Title and Like Button */}
+        <View style={styles.titleSection}>
+          <Text style={styles.eventTitle}>{event.title}</Text>
+          <LikeButton 
+            eventId={parseInt(id as string)} 
+            eventTitle={event.title}
+            variant="icon"
+            style={styles.likeButton}
+          />
+        </View>
 
         {/* Church Information */}
         <View style={styles.churchSection}>
@@ -209,12 +218,22 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 20,
   },
+  titleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
   eventTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#e74c3c',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    flex: 1,
+    marginRight: 12,
+  },
+  likeButton: {
+    alignSelf: 'flex-start',
   },
   eventImage: {
     width: '100%',

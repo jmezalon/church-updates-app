@@ -116,3 +116,25 @@ CREATE TABLE IF NOT EXISTS members (
     FOREIGN KEY (church_id) REFERENCES churches(id) ON DELETE CASCADE,
     FOREIGN KEY (ministry_id) REFERENCES ministries(id) ON DELETE SET NULL
 );
+
+-- User Church Follows (for following churches)
+CREATE TABLE IF NOT EXISTS user_church_follows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    church_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (church_id) REFERENCES churches(id) ON DELETE CASCADE,
+    UNIQUE(user_id, church_id)
+);
+
+-- User Event Likes (for liking events)
+CREATE TABLE IF NOT EXISTS user_event_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+    UNIQUE(user_id, event_id)
+);

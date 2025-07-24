@@ -14,6 +14,7 @@ const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
 const enrollmentRoutes = require('./routes/enrollment');
 const uploadRoutes = require('./routes/upload');
+const favoritesRouter = require('./routes/favorites');
 const errorHandler = require('./middleware/errorHandler');
 const { initializeDatabase } = require('./db');
 
@@ -32,6 +33,7 @@ app.use('/api/events', globalEventsRouter);
 app.use('/api/churches/:churchId/donations', donationsRouter);
 app.use('/api/announcements', announcementsRouter);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/favorites', favoritesRouter);
 
 // Error handling middleware
 app.use(errorHandler);

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { apiService, Church, Event, Announcement } from '@/services/api';
+import FollowButton from '@/components/FollowButton';
 
 export default function ChurchScreen() {
   const router = useRouter();
@@ -164,6 +165,11 @@ export default function ChurchScreen() {
               {[church.address, church.city, church.state].filter(Boolean).join(', ')}
             </Text>
           </View>
+          <FollowButton 
+            churchId={parseInt(id)} 
+            churchName={church.name}
+            style={styles.followButton}
+          />
         </View>
 
         {/* Leadership Section */}
@@ -530,6 +536,9 @@ const styles = StyleSheet.create({
   location: {
     fontSize: 16,
     color: '#666',
+  },
+  followButton: {
+    marginLeft: 8,
   },
   section: {
     backgroundColor: '#fff',
