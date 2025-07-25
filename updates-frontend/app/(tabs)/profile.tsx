@@ -47,7 +47,17 @@ export default function ProfileScreen() {
         try {
           const data = await apiService.uploadImage(imageUri, token);
           setAvatar(data.url);
-          Alert.alert('Success', 'Image uploaded successfully');
+          
+          // Immediately update the backend profile with new avatar
+          const updatedUser = await apiService.updateProfile({
+            name: user?.name || name,
+            avatar: data.url,
+          }, token);
+          
+          // Update user context to persist the change
+          updateUser(updatedUser);
+          
+          Alert.alert('Success', 'Profile image updated successfully');
         } catch (error) {
           console.error('Image upload error:', error);
           Alert.alert('Error', 'Failed to upload image');

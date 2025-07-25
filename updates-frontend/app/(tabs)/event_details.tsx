@@ -230,9 +230,9 @@ const styles = StyleSheet.create({
   },
   eventImage: {
     width: '100%',
-    height: 400,
+    height: 350,
     resizeMode: 'cover',
-    marginBottom: 8,
+    marginBottom: 0,
   },
   churchSection: {
     paddingHorizontal: 16,
