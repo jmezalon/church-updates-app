@@ -211,7 +211,6 @@ router.post('/change-password', authenticateToken, async (req, res, next) => {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.userId;
     
-    console.log('Password change request for user:', userId);
     
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ 
@@ -228,20 +227,16 @@ router.post('/change-password', authenticateToken, async (req, res, next) => {
     // Get user from database with password hash
     const user = await users.getByIdWithPassword(userId);
     if (!user) {
-      console.log('User not found:', userId);
       return res.status(404).json({ error: 'User not found' });
     }
     
-    console.log('User found, verifying current password');
     
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isCurrentPasswordValid) {
-      console.log('Current password is incorrect for user:', userId);
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
     
-    console.log('Current password verified, updating to new password');
     
     // Hash new password
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
@@ -249,7 +244,6 @@ router.post('/change-password', authenticateToken, async (req, res, next) => {
     // Update password in database
     await users.updatePassword(userId, newPasswordHash);
     
-    console.log('Password updated successfully for user:', userId);
     
     res.json({ message: 'Password changed successfully' });
     
@@ -306,7 +300,6 @@ router.post('/forgot-password', async (req, res, next) => {
       });
     }
     
-    console.log(`Password reset requested for user: ${user.id} (${email})`);
     
     res.json({ 
       message: 'If an account with that email exists, a password reset link has been sent.' 
@@ -405,7 +398,6 @@ router.post('/reset-password', async (req, res, next) => {
     await users.updatePassword(user.id, newPasswordHash);
     await users.clearPasswordResetToken(user.id);
     
-    console.log(`Password reset completed for user: ${user.id} (${user.email})`);
     
     res.json({ 
       message: 'Password reset successfully. You can now log in with your new password.' 
