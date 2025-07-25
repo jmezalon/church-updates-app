@@ -15,6 +15,7 @@ const usersRouter = require('./routes/users');
 const enrollmentRoutes = require('./routes/enrollment');
 const uploadRoutes = require('./routes/upload');
 const favoritesRouter = require('./routes/favorites');
+const publicEventsRouter = require('./routes/publicEvents');
 const errorHandler = require('./middleware/errorHandler');
 const { initializeDatabase } = require('./db');
 
@@ -22,6 +23,9 @@ app.use(express.json());
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads'));
+
+// Public routes (no /api prefix) - for shared links and web views
+app.use('/events', publicEventsRouter);
 
 // API routes - all routes under /api prefix
 app.use('/api/auth', authRouter);

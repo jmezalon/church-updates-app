@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  Share,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { apiService, Event } from '@/services/api';
@@ -71,6 +72,31 @@ export default function EventDetailScreen() {
     }
   };
 
+  const handleShare = async () => {
+    if (!event) return;
+    
+    try {
+      // For development, use localhost. In production, replace with your actual domain
+      const baseUrl = __DEV__ ? 'http://localhost:3000' : 'https://your-production-domain.com';
+      const shareUrl = `${baseUrl}/events/${event.id}`;
+      const shareMessage = `Check out this event: ${event.title}`;
+      
+      const result = await Share.share({
+        message: `${shareMessage}\n\n${shareUrl}`,
+        url: shareUrl, // iOS will use this for the URL
+        title: event.title,
+      });
+      
+      if (result.action === Share.sharedAction) {
+        // Content was shared successfully
+        console.log('Event shared successfully');
+      }
+    } catch (error) {
+      console.error('Error sharing event:', error);
+      Alert.alert('Error', 'Failed to share event');
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -100,15 +126,20 @@ export default function EventDetailScreen() {
           <Image source={{ uri: event.image_url }} style={styles.eventImage} />
         )}
 
-        {/* Event Title and Like Button */}
+        {/* Event Title and Action Buttons */}
         <View style={styles.titleSection}>
           <Text style={styles.eventTitle}>{event.title}</Text>
-          <LikeButton 
-            eventId={parseInt(id as string)} 
-            eventTitle={event.title}
-            variant="icon"
-            style={styles.likeButton}
-          />
+          <View style={styles.actionButtons}>
+            <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
+              <Text style={styles.shareButtonText}>↗ Share</Text>
+            </TouchableOpacity>
+            <LikeButton 
+              eventId={parseInt(id as string)} 
+              eventTitle={event.title}
+              variant="icon"
+              style={styles.likeButton}
+            />
+          </View>
         </View>
 
         {/* Church Information */}
@@ -224,6 +255,27 @@ const styles = StyleSheet.create({
     color: '#e74c3c',
     flex: 1,
     marginRight: 12,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  shareButton: {
+    backgroundColor: '#f1f3f4',
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 80,
+    height: 36,
+  },
+  shareButtonText: {
+    fontSize: 14,
+    color: '#030303',
+    fontWeight: '500',
+    letterSpacing: 0.25,
   },
   likeButton: {
     alignSelf: 'flex-start',

@@ -25,7 +25,13 @@ module.exports = {
   async getById(id) {
     const db = getDb();
     const row = await db.get(
-      'SELECT * FROM events WHERE id = ?',
+      `SELECT e.*, c.name as church_name, c.logo_url as church_logo,
+              COUNT(uel.id) as like_count
+       FROM events e 
+       JOIN churches c ON e.church_id = c.id 
+       LEFT JOIN user_event_likes uel ON e.id = uel.event_id
+       WHERE e.id = ?
+       GROUP BY e.id, c.id`,
       [id]
     );
     return row;
