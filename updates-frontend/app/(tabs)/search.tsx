@@ -9,8 +9,12 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { apiService, Church } from '@/services/api';
+
+const RECENT_SEARCHES_KEY = 'recent_church_searches';
+const MAX_RECENT_SEARCHES = 5;
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -19,9 +23,12 @@ export default function SearchScreen() {
   const [churches, setChurches] = useState<Church[]>([]);
   const [filteredChurches, setFilteredChurches] = useState<Church[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recentSearches, setRecentSearches] = useState<Church[]>([]);
+  const [showRecentSearches, setShowRecentSearches] = useState(false);
 
   useEffect(() => {
     loadChurches();
+    loadRecentSearches();
   }, []);
 
   useEffect(() => {
@@ -52,6 +59,46 @@ export default function SearchScreen() {
     }
   };
 
+  const loadRecentSearches = async () => {
+    try {
+      const recentSearchesData = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+      if (recentSearchesData) {
+        const parsedRecentSearches = JSON.parse(recentSearchesData);
+        setRecentSearches(parsedRecentSearches);
+      }
+    } catch (error) {
+      console.error('Error loading recent searches:', error);
+    }
+  };
+
+  const saveRecentSearch = async (church: Church) => {
+    try {
+      // Remove the church if it already exists in recent searches
+      const updatedRecentSearches = recentSearches.filter(item => item.id !== church.id);
+      
+      // Add the church to the beginning of the array
+      updatedRecentSearches.unshift(church);
+      
+      // Keep only the most recent searches (up to MAX_RECENT_SEARCHES)
+      const limitedRecentSearches = updatedRecentSearches.slice(0, MAX_RECENT_SEARCHES);
+      
+      // Save to AsyncStorage
+      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(limitedRecentSearches));
+      setRecentSearches(limitedRecentSearches);
+    } catch (error) {
+      console.error('Error saving recent search:', error);
+    }
+  };
+
+  const clearRecentSearches = async () => {
+    try {
+      await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+      setRecentSearches([]);
+    } catch (error) {
+      console.error('Error clearing recent searches:', error);
+    }
+  };
+
   const filterChurches = () => {
     if (!searchQuery.trim()) {
       setFilteredChurches([]);
@@ -67,8 +114,17 @@ export default function SearchScreen() {
   };
 
   const handleChurchPress = (churchId: number) => {
+    // Find the church object to save to recent searches
+    const selectedChurch = churches.find(church => church.id === churchId) || 
+                          recentSearches.find(church => church.id === churchId);
+    
+    if (selectedChurch) {
+      saveRecentSearch(selectedChurch);
+    }
+    
     // Clear the search field when navigating to church
     setSearchQuery('');
+    setShowRecentSearches(false);
     router.push(`/(tabs)/church/church_detail?id=${churchId}`);
   };
 
@@ -106,7 +162,19 @@ export default function SearchScreen() {
           style={styles.searchInput}
           placeholder="Search for churches..."
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            setShowRecentSearches(text.trim() === '' && recentSearches.length > 0);
+          }}
+          onFocus={() => {
+            if (searchQuery.trim() === '' && recentSearches.length > 0) {
+              setShowRecentSearches(true);
+            }
+          }}
+          onBlur={() => {
+            // Delay hiding recent searches to allow for item selection
+            setTimeout(() => setShowRecentSearches(false), 150);
+          }}
           placeholderTextColor="#999"
         />
       </View>
@@ -115,12 +183,38 @@ export default function SearchScreen() {
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading churches...</Text>
         </View>
+      ) : showRecentSearches ? (
+        <View style={styles.recentSearchesContainer}>
+          <View style={styles.recentSearchesHeader}>
+            <Text style={styles.recentSearchesTitle}>Recent Searches</Text>
+            {recentSearches.length > 0 && (
+              <TouchableOpacity onPress={clearRecentSearches}>
+                <Text style={styles.clearButton}>Clear All</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <FlatList
+            data={recentSearches}
+            renderItem={renderChurchItem}
+            keyExtractor={(item) => `recent-${item.id.toString()}`}
+            style={styles.resultsList}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+        </View>
       ) : searchQuery.trim() === '' ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>Search for Churches</Text>
           <Text style={styles.emptyDescription}>
             Type in the search box above to find churches by name or location.
           </Text>
+          {recentSearches.length > 0 && (
+            <TouchableOpacity 
+              style={styles.showRecentButton}
+              onPress={() => setShowRecentSearches(true)}
+            >
+              <Text style={styles.showRecentButtonText}>Show Recent Searches</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : filteredChurches.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -244,5 +338,41 @@ const styles = StyleSheet.create({
   churchPastor: {
     fontSize: 14,
     color: '#888',
+  },
+  recentSearchesContainer: {
+    flex: 1,
+  },
+  recentSearchesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  recentSearchesTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  clearButton: {
+    fontSize: 14,
+    color: '#e74c3c',
+    fontWeight: '500',
+  },
+  showRecentButton: {
+    backgroundColor: '#e74c3c',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  showRecentButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
