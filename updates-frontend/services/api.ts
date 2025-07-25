@@ -57,6 +57,8 @@ export interface Event {
   title: string;
   description?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   start_datetime: string;
   end_datetime?: string;
   image_url?: string;
