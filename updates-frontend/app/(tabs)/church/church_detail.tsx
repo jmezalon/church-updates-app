@@ -9,9 +9,59 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { apiService, Church, Event, Announcement } from '@/services/api';
+import { apiService, Church, Event, Announcement, Donation } from '@/services/api';
 import FollowButton from '@/components/FollowButton';
+
+// Helper function to get payment method branding
+const getPaymentMethodBranding = (method: string) => {
+  const methodLower = method.toLowerCase();
+  
+  if (methodLower.includes('zelle')) {
+    return {
+      icon: 'card' as const,
+      color: '#6B46C1', // Purple
+      backgroundColor: '#F3F4F6'
+    };
+  } else if (methodLower.includes('cash app') || methodLower.includes('cashapp')) {
+    return {
+      icon: 'logo-usd' as const,
+      color: '#00D632', // Green
+      backgroundColor: '#F0FDF4'
+    };
+  } else if (methodLower.includes('paypal')) {
+    return {
+      icon: 'card' as const,
+      color: '#0070BA', // Blue
+      backgroundColor: '#EFF6FF'
+    };
+  } else if (methodLower.includes('venmo')) {
+    return {
+      icon: 'card' as const,
+      color: '#3D95CE', // Light Blue
+      backgroundColor: '#F0F9FF'
+    };
+  } else if (methodLower.includes('apple pay')) {
+    return {
+      icon: 'phone-portrait' as const,
+      color: '#000000', // Black
+      backgroundColor: '#F9FAFB'
+    };
+  } else if (methodLower.includes('google pay')) {
+    return {
+      icon: 'phone-portrait' as const,
+      color: '#4285F4', // Google Blue
+      backgroundColor: '#F0F9FF'
+    };
+  } else {
+    return {
+      icon: 'card' as const,
+      color: '#6B7280', // Gray
+      backgroundColor: '#F9FAFB'
+    };
+  }
+};
 
 export default function ChurchScreen() {
   const router = useRouter();
@@ -21,6 +71,7 @@ export default function ChurchScreen() {
   const [events, setEvents] = useState<Event[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [weeklySchedule, setWeeklySchedule] = useState<Announcement[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedAnnouncements, setExpandedAnnouncements] = useState<Set<number>>(new Set());
 
@@ -32,18 +83,20 @@ export default function ChurchScreen() {
     try {
       const churchId = parseInt(id as string);
       
-      // Load church details, events, announcements, and weekly schedule in parallel
-      const [churchData, eventsData, announcementsData, weeklyData] = await Promise.all([
+      // Load church details, events, announcements, weekly schedule, and donations in parallel
+      const [churchData, eventsData, announcementsData, weeklyData, donationsData] = await Promise.all([
         apiService.getChurch(churchId),
         apiService.getEventsByChurch(churchId),
         apiService.getAnnouncementsByChurch(churchId),
-        apiService.getWeeklyAnnouncementsByChurch(churchId)
+        apiService.getWeeklyAnnouncementsByChurch(churchId),
+        apiService.getDonationsByChurch(churchId)
       ]);
 
       setChurch(churchData);
       setEvents(eventsData);
       setAnnouncements(announcementsData);
       setWeeklySchedule(weeklyData);
+      setDonations(donationsData);
     } catch (error) {
       console.error('Error loading church data:', error);
       Alert.alert('Error', 'Failed to load church information');
@@ -450,6 +503,73 @@ export default function ChurchScreen() {
                 );
               });
             })()}
+          </View>
+        )}
+
+        {/* Donations */}
+        {donations.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Donations</Text>
+            <Text style={styles.donationDescription}>
+              Support {church.name} through the following payment methods:
+            </Text>
+            {donations.map((donation) => {
+              const branding = getPaymentMethodBranding(donation.method);
+              return (
+                <View 
+                  key={donation.id} 
+                  style={[
+                    styles.donationCard, 
+                    { 
+                      borderLeftColor: branding.color,
+                      backgroundColor: branding.backgroundColor
+                    }
+                  ]}
+                >
+                  <View style={styles.donationHeader}>
+                    <View style={styles.donationMethodContainer}>
+                      <View style={[styles.donationIconContainer, { backgroundColor: branding.color }]}>
+                        <Ionicons 
+                          name={branding.icon} 
+                          size={20} 
+                          color="white" 
+                        />
+                      </View>
+                      <Text style={[styles.donationMethod, { color: branding.color }]}>
+                        {donation.method}
+                      </Text>
+                    </View>
+                    {donation.contact_name && (
+                      <Text style={styles.donationTitle}>{donation.contact_name}</Text>
+                    )}
+                  </View>
+                <TouchableOpacity 
+                  style={styles.donationInfo}
+                  onPress={() => {
+                    if (donation.method.toLowerCase() === 'zelle' || donation.method.toLowerCase() === 'paypal') {
+                      // For Zelle/PayPal, copy email/phone to clipboard
+                      // You could implement clipboard functionality here
+                      Alert.alert('Payment Info', `${donation.method}: ${donation.contact_info}`);
+                    } else if (donation.method.toLowerCase().includes('cash app')) {
+                      // For Cash App, try to open the app
+                      const cashAppUrl = `https://cash.app/${donation.contact_info.replace('$', '')}`;
+                      Linking.openURL(cashAppUrl).catch(() => {
+                        Alert.alert('Payment Info', `Cash App: ${donation.contact_info}`);
+                      });
+                    } else {
+                      Alert.alert('Payment Info', `${donation.method}: ${donation.contact_info}`);
+                    }
+                  }}
+                >
+                  <Text style={styles.donationAccount}>{donation.contact_info}</Text>
+                  <Text style={styles.donationTapHint}>Tap to copy or open</Text>
+                </TouchableOpacity>
+                {donation.note && (
+                  <Text style={styles.donationNote}>{donation.note}</Text>
+                )}
+              </View>
+              );
+            })}
           </View>
         )}
 
@@ -886,5 +1006,74 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontWeight: '500',
+  },
+  // Donation styles
+  donationDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  donationCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#e74c3c',
+  },
+  donationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  donationMethodContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  donationIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  donationMethod: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  donationTitle: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  donationInfo: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  donationAccount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  donationTapHint: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  donationNote: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
+    lineHeight: 16,
   },
 });

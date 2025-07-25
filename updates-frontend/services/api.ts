@@ -1,5 +1,16 @@
 const API_BASE_URL = 'http://localhost:3000/api';
 
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  avatar?: string;
+  enrollment_status?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Church {
   id: number;
   name: string;
@@ -69,9 +80,27 @@ export interface Donation {
 }
 
 class ApiService {
-  private async fetchApi<T>(endpoint: string): Promise<T> {
+  private getAuthHeaders(token?: string): Record<string, string> {
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
+
+  private async fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
+      const defaultOptions: RequestInit = {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+      
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...defaultOptions,
+        ...options,
+        headers: {
+          ...defaultOptions.headers,
+          ...options?.headers,
+        },
+      });
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -128,6 +157,74 @@ class ApiService {
   // Donations
   async getDonationsByChurch(churchId: number): Promise<Donation[]> {
     return this.fetchApi<Donation[]>(`/churches/${churchId}/donations`);
+  }
+
+  // Profile Management
+  async updateProfile(data: { name: string; avatar?: string }, token: string): Promise<User> {
+    return this.fetchApi<User>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      headers: {
+        ...this.getAuthHeaders(token),
+      },
+    });
+  }
+
+  async changePassword(data: { currentPassword: string; newPassword: string }, token: string): Promise<{ message: string }> {
+    return this.fetchApi<{ message: string }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        ...this.getAuthHeaders(token),
+      },
+    });
+  }
+
+  async deleteAccount(token: string): Promise<{ message: string }> {
+    return this.fetchApi<{ message: string }>('/auth/account', {
+      method: 'DELETE',
+      headers: {
+        ...this.getAuthHeaders(token),
+      },
+    });
+  }
+
+  async uploadImage(imageUri: string, token: string): Promise<{ url: string }> {
+    const formData = new FormData();
+    
+    // Handle different URI formats for web vs React Native
+    if (imageUri.startsWith('data:')) {
+      // Web: Convert base64 data URL to File object
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      formData.append('image', file);
+    } else {
+      // React Native: Use URI format
+      formData.append('image', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: 'avatar.jpg',
+      } as any);
+    }
+
+    const uploadResponse = await fetch(`${API_BASE_URL}/upload/image`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        ...this.getAuthHeaders(token),
+        // Let the browser/React Native set Content-Type automatically for FormData
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      throw new Error(`Upload failed: ${uploadResponse.status} - ${errorText}`);
+    }
+
+    const data = await uploadResponse.json();
+    // Backend returns imageUrl, but frontend expects url
+    return { url: data.imageUrl };
   }
 }
 

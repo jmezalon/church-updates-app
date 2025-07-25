@@ -116,17 +116,13 @@ function FavoritesContent() {
 
   const handleLogout = async () => {
     try {
-      console.log('🔄 Starting logout process...');
       
       // Use AuthContext logout method (handles clearing stored data)
       await logout();
-      
-      console.log('✅ Logout successful, navigating to login...');
-      
+            
       // Navigate to login screen
       router.replace('/auth/login' as any);
     } catch (error) {
-      console.error('❌ Error during logout:', error);
       Alert.alert('Error', 'Failed to sign out. Please try again.');
     }
   };

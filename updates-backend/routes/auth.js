@@ -419,5 +419,51 @@ router.post('/reset-password', async (req, res, next) => {
   }
 });
 
+// PUT /auth/profile - Update user profile
+router.put('/profile', authenticateToken, async (req, res, next) => {
+  try {
+    const { name, avatar } = req.body;
+    const userId = req.user.userId;
+    
+    if (!name || !name.trim()) {
+      return res.status(400).json({ 
+        error: 'Name is required' 
+      });
+    }
+    
+    // Update user profile
+    const updatedUser = await users.update(userId, {
+      name: name.trim(),
+      avatar: avatar || null
+    });
+    
+    res.json(updatedUser);
+    
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ 
+      error: 'Failed to update profile' 
+    });
+  }
+});
+
+// DELETE /auth/account - Delete user account
+router.delete('/account', authenticateToken, async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Delete user account
+    await users.remove(userId);
+    
+    res.json({ message: 'Account deleted successfully' });
+    
+  } catch (err) {
+    console.error('Account deletion error:', err);
+    res.status(500).json({ 
+      error: 'Failed to delete account' 
+    });
+  }
+});
+
 module.exports = router;
 module.exports.authenticateToken = authenticateToken;

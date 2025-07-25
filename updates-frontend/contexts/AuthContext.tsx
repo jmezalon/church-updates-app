@@ -20,6 +20,7 @@ interface AuthContextType {
   authenticateWithToken: (token: string, userData: any) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUser: (userData: User) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -166,6 +167,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const updateUser = async (userData: User): Promise<void> => {
+    try {
+      setUser(userData);
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  };
+
   const clearStoredAuth = async () => {
     await Promise.all([
       AsyncStorage.removeItem('authToken'),
@@ -182,6 +193,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authenticateWithToken,
     logout,
     refreshUser,
+    updateUser,
   };
 
   return (

@@ -1,6 +1,7 @@
 import { Tabs, useRouter, usePathname } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View, Text } from 'react-native';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { HapticTab } from '@/components/HapticTab';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
@@ -33,6 +34,8 @@ export default function TabLayout() {
       router.push('/(tabs)' as any);
     }
   };
+
+  const { user } = useAuth();
 
   return (
     <Tabs
@@ -82,6 +85,55 @@ export default function TabLayout() {
           ),
         }}
       />
+      {user !== null ? <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, focused }) => {
+            
+            if (user?.avatar) {
+              return (
+                <View style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: color,
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}>
+                  {/* Avatar image would go here */}
+                  <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+                    {user.name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              );
+            } else {
+              return (
+                <View style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: color,
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}>
+                  <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </Text>
+                </View>
+              );
+            }
+          },
+        }}
+      /> 
+      : 
+      <Tabs.Screen
+        name="profile"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
+      }
       <Tabs.Screen
         name="event_details"
         options={{

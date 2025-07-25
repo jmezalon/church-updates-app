@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('superuser', 'church_admin', 'user')),
     enrollment_status TEXT DEFAULT 'none' CHECK (enrollment_status IN ('none', 'pending', 'assigned')),
+    avatar TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
