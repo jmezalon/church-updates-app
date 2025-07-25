@@ -67,6 +67,7 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Error loading user location:', error);
+      setShowLocationModal(true);
     }
   };
 
