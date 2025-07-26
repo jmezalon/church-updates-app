@@ -212,7 +212,7 @@ export function Landing() {
                   }}
                 >
                   <img 
-                  src={churchPageOne} 
+                  src={churchPageTwo} 
                   alt="church page update first" 
                   style={{ 
                     width: '100%', 
@@ -254,7 +254,7 @@ export function Landing() {
                   }}
                 >
                   <img 
-                  src={churchPageTwo} 
+                  src={churchPageOne} 
                   alt="church page update second" 
                   style={{ 
                     width: '100%', 
