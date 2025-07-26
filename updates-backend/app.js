@@ -4,7 +4,13 @@ const cors = require('cors');
 const app = express();
 
 // Enable CORS for all routes
-app.use(cors());
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.CORS_ORIGIN, 'https://your-admin-portal.vercel.app'] 
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  credentials: true
+};
+app.use(cors(corsOptions));
 const churchesRouter = require('./routes/churches');
 const eventsRouter = require('./routes/events');
 const globalEventsRouter = require('./routes/globalEvents');
