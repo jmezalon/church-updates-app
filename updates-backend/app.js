@@ -6,7 +6,17 @@ const app = express();
 // Enable CORS for all routes
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.CORS_ORIGIN, 'https://your-admin-portal.vercel.app'] 
+    ? [
+        process.env.CORS_ORIGIN,
+        process.env.ADMIN_PORTAL_URL,
+        // Common deployment patterns for admin portal
+        /^https:\/\/.*\.vercel\.app$/,
+        /^https:\/\/.*\.netlify\.app$/,
+        /^https:\/\/.*\.herokuapp\.com$/,
+        // Add specific known admin portal URLs
+        'https://churchupdates.netlify.app',
+        'https://updates-admin.vercel.app'
+      ].filter(Boolean) // Remove undefined values
     : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
   credentials: true
 };
